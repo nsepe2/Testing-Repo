@@ -52,19 +52,19 @@ class B2(object):
         else:
             return [f.key for f in self.bucket.objects.all()]
 
-    def get_df(self, remote_path):
-        """
-        Get a CSV file from Backblaze as a DataFrame.
+  def get_df(self, remote_path):
+    """
+    Get an Excel file from Backblaze as a DataFrame.
 
-        Parameters
-        ----------
-        remote_path : str
-            The path to the file in the Backblaze bucket.
-        """
-        # Get file
-        obj = self.bucket.Object(remote_path)
-        df = pd.read_csv(obj.get()['Body'])
-        return df
+    Parameters
+    ----------
+    remote_path : str
+        The path to the file in the Backblaze bucket.
+    """
+    # Get file
+    obj = self.bucket.Object(remote_path)
+    df = pd.read_excel(obj.get()['Body'])
+    return df
     
     def get_object(self, remote_path):
         """
