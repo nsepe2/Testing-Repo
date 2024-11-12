@@ -9,8 +9,8 @@ load_dotenv()
 # Set Backblaze connection
 b2 = B2(
     endpoint=os.getenv('B2_ENDPOINT', 's3.us-east-005.backblazeb2.com'),
-    key_id=os.getenv('005491ab29352f00000000004'),
-    secret_key=os.getenv('K005QSXRLYirUmMz6luqLWZixDJ6Hb8')
+    key_id=os.getenv('B2_KEYID'),
+    secret_key=os.getenv('B2_APPKEY')
 )
 
 # Example function to retrieve data from Backblaze
@@ -24,11 +24,12 @@ def fetch_data(bucket_name, file_name):
 
 # Streamlit UI
 st.title('Backblaze Data Fetcher')
-bucket = st.text_input('Enter Bucket Name')
+bucket = st.text_input('Enter Bucket Name', value='AirBnB-CSV')  # Default bucket name
 file = st.text_input('Enter File Name')
 
 if st.button('Fetch Data'):
     data = fetch_data(bucket, file)
     if data:
-        st.write('Data:', data)
+        st.write('Data:', data)  # Display data if successfully fetched
+
 
