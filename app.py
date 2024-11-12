@@ -2,8 +2,6 @@ import sys
 import os
 import streamlit as st
 import pandas as pd
-import random
-import pydeck as pdk
 from dotenv import load_dotenv
 from utils.b2 import B2
 
@@ -26,7 +24,7 @@ def fetch_data():
         # Set the bucket first
         b2.set_bucket('AirBnB-CSV')  # Set the bucket before fetching the file
         # Fetch the object from Backblaze
-        obj = b2.get_object('Airbnb Dataset_Long.csv')  # Use the fixed file name
+        obj = b2.get_object('Airbnb Dataset_Final.csv')  # Use the fixed file name
         return pd.read_csv(obj)
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
@@ -49,62 +47,16 @@ if st.session_state.page == "main":
     if seller:
         st.session_state.page = "seller"
 
-# Buyer Page
-elif st.session_state.page == "buyer":
-    st.header("Explore Listings in Austin, Texas")
-    data = fetch_data()
-    if data is not None:
-        st.map(data[['latitude', 'longitude']])
+# Fetch data from Backblaze
+data = fetch_data()
+if data is not None:
+    st.write("Data loaded successfully.")
 
-        # Add interactivity with Pydeck
-        st.pydeck_chart(pdk.Deck(
-            map_style='mapbox://styles/mapbox/streets-v11',
-            initial_view_state=pdk.ViewState(
-                latitude=data['latitude'].mean(),
-                longitude=data['longitude'].mean(),
-                zoom=10,
-                pitch=50,
-            ),
-            layers=[
-                pdk.Layer(
-                    'ScatterplotLayer',
-                    data=data,
-                    get_position='[longitude, latitude]',
-                    get_color='[200, 30, 0, 160]',
-                    get_radius=200,
-                    pickable=True
-                )
-            ],
-            tooltip={
-                "html": "<b>Listing:</b> {name}<br/><b>Bedrooms:</b> {bedrooms}<br/><b>Bathrooms:</b> {bathrooms}<br/><b>Amenities:</b> {amenities}",
-                "style": {
-                    "backgroundColor": "steelblue",
-                    "color": "white"
-                }
-            }
-        ))
+# Placeholder for Buyer and Seller code to be added by other group members
+if st.session_state.page == "buyer":
+    st.write("Buyer window placeholder. Replace with actual implementation.")
 
-    # Back button to go back to main page
-    if st.button("Back"):
-        st.session_state.page = "main"
-
-# Seller Page
 elif st.session_state.page == "seller":
-    st.header("Estimate Your Airbnb Listing Review Score")
+    st.write("Seller window placeholder. Replace with actual implementation.")
 
-    # Drop-down inputs for seller
-    property_type = st.selectbox("Property Type", ["House", "Apartment", "Condo", "Townhouse"])
-    bedrooms = st.selectbox("Number of Bedrooms", [1, 2, 3, 4, 5])
-    bathrooms = st.selectbox("Number of Bathrooms", [1, 2, 3, 4, 5])
-    amenities = st.text_input("List of Amenities (comma separated)")
-    description = st.text_area("Description of Your Listing")
-
-    if st.button("Generate Review Score"):
-        # Generate a random score out of 5
-        review_score = round(random.uniform(1, 5), 2)
-        st.success(f"Estimated Review Score: {review_score} out of 5")
-
-    # Back button to go back to main page
-    if st.button("Back"):
-        st.session_state.page = "main"
 
