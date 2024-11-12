@@ -18,19 +18,16 @@ b2 = B2(
     secret_key=os.getenv('B2_APPKEY')
 )
 
-# Example function to retrieve data from Backblaze
 def fetch_data():
     try:
-        # Set the bucket first
-        b2.set_bucket('AirBnB-CSV')  # Set the bucket before fetching the file
-        # Fetch the object from Backblaze
-        obj = b2.get_object('Airbnb Dataset_Final.csv')  # Use the fixed file name
+        b2.set_bucket('AirBnB-CSV')  # Set the bucket
+        obj = b2.get_object('Airbnb Dataset_Final.csv')  # Use the EXACT file name
         return pd.read_csv(obj)
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
         return None
 
-# Streamlit app
+# APPLICATION
 st.title("Airbnb Data Viewer")
 
 # Main Page with Buyer and Seller buttons
@@ -52,9 +49,9 @@ data = fetch_data()
 if data is not None:
     st.write("Data loaded successfully.")
 
-# Placeholder for Buyer and Seller code to be added by other group members
+# Placeholder for Buyer and Seller code to be added 
 if st.session_state.page == "buyer":
-    st.write("Buyer window placeholder. Replace with actual implementation.")
+    st.write("Buyer window placeholder. Replace with  implementation.")
 
 elif st.session_state.page == "seller":
     st.write("Seller window placeholder. Replace with actual implementation.")
