@@ -20,12 +20,14 @@ class B2(object):
             The Key secret, or "Key" for the Backblaze app key itself.
         """
         # Return a boto3 resource object for B2 service
-        self.b2 = boto3.resource(service_name='s3',
-                                endpoint_url=endpoint,
-                                aws_access_key_id=key_id,
-                                aws_secret_access_key=secret_key,
-                                config=Config(signature_version='s3v4'))
-        
+       self.b2 = boto3.resource(
+            service_name='s3',
+            endpoint_url=f"https://{endpoint}",  # Add 'https://' before the endpoint value
+            aws_access_key_id=key_id,
+            aws_secret_access_key=secret_key,
+            config=Config(signature_version='s3v4')
+        )
+
     def set_bucket(self, bucket_name):
         """
         Select a bucket accessible by the chosen app key.
