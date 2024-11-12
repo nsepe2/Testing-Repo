@@ -26,7 +26,7 @@ def fetch_data():
         # Set the bucket first
         b2.set_bucket('AirBnB-CSV')  # Set the bucket before fetching the file
         # Fetch the object from Backblaze
-        obj = b2.get_object('Airbnb Dataset_Final.csv')  # Use the fixed file name
+        obj = b2.get_object('Airbnb Dataset_Long.csv')  # Use the fixed file name
         return pd.read_csv(obj)
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
