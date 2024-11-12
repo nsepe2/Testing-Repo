@@ -9,8 +9,8 @@ load_dotenv()
 # Set Backblaze connection
 b2 = B2(
     endpoint=os.getenv('B2_ENDPOINT', 's3.us-east-005.backblazeb2.com'),
-    key_id=os.getenv('B2_KEYID'),
-    secret_key=os.getenv('B2_APPKEY')
+    key_id=os.getenv('005491ab29352f00000000004'),
+    secret_key=os.getenv('K005QSXRLYirUmMz6luqLWZixDJ6Hb8')
 )
 
 # Example function to retrieve data from Backblaze
