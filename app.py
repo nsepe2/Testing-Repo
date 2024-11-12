@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'util
 
 import streamlit as st
 from dotenv import load_dotenv
-from utils.b2 import B2  # Assuming you have created this class for Backblaze connection.
+from .utils.b2 import B2  # Assuming you have created this class for Backblaze connection.
 
 # Load environment variables
 load_dotenv()
