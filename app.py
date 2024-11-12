@@ -21,12 +21,12 @@ b2 = B2(
 )
 
 # Example function to retrieve data from Backblaze
-def fetch_data(bucket_name, file_name):
+def fetch_data():
     try:
         # Set the bucket first
-        b2.set_bucket(bucket_name)  # Set the bucket before fetching the file
+        b2.set_bucket('AirBnB-CSV')  # Set the bucket before fetching the file
         # Fetch the object from Backblaze
-        obj = b2.get_object(file_name)  # Use only the file name (remote_path)
+        obj = b2.get_object('Airbnb Dataset_Final.csv')  # Use the fixed file name
         return pd.read_csv(obj)
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
@@ -52,40 +52,37 @@ if st.session_state.page == "main":
 # Buyer Page
 elif st.session_state.page == "buyer":
     st.header("Explore Listings in Austin, Texas")
-    bucket = st.text_input('Enter Bucket Name', value='AirBnB-CSV')
-    file = st.text_input('Enter File Name', value='AirBnB-CSV.csv')
-    if st.button('Load Data'):
-        data = fetch_data(bucket, file)
-        if data is not None:
-            st.map(data[['latitude', 'longitude']])
+    data = fetch_data()
+    if data is not None:
+        st.map(data[['latitude', 'longitude']])
 
-            # Add interactivity with Pydeck
-            st.pydeck_chart(pdk.Deck(
-                map_style='mapbox://styles/mapbox/streets-v11',
-                initial_view_state=pdk.ViewState(
-                    latitude=data['latitude'].mean(),
-                    longitude=data['longitude'].mean(),
-                    zoom=10,
-                    pitch=50,
-                ),
-                layers=[
-                    pdk.Layer(
-                        'ScatterplotLayer',
-                        data=data,
-                        get_position='[longitude, latitude]',
-                        get_color='[200, 30, 0, 160]',
-                        get_radius=200,
-                        pickable=True
-                    )
-                ],
-                tooltip={
-                    "html": "<b>Listing:</b> {name}<br/><b>Bedrooms:</b> {bedrooms}<br/><b>Bathrooms:</b> {bathrooms}<br/><b>Amenities:</b> {amenities}",
-                    "style": {
-                        "backgroundColor": "steelblue",
-                        "color": "white"
-                    }
+        # Add interactivity with Pydeck
+        st.pydeck_chart(pdk.Deck(
+            map_style='mapbox://styles/mapbox/streets-v11',
+            initial_view_state=pdk.ViewState(
+                latitude=data['latitude'].mean(),
+                longitude=data['longitude'].mean(),
+                zoom=10,
+                pitch=50,
+            ),
+            layers=[
+                pdk.Layer(
+                    'ScatterplotLayer',
+                    data=data,
+                    get_position='[longitude, latitude]',
+                    get_color='[200, 30, 0, 160]',
+                    get_radius=200,
+                    pickable=True
+                )
+            ],
+            tooltip={
+                "html": "<b>Listing:</b> {name}<br/><b>Bedrooms:</b> {bedrooms}<br/><b>Bathrooms:</b> {bathrooms}<br/><b>Amenities:</b> {amenities}",
+                "style": {
+                    "backgroundColor": "steelblue",
+                    "color": "white"
                 }
-            ))
+            }
+        ))
 
     # Back button to go back to main page
     if st.button("Back"):
@@ -110,3 +107,4 @@ elif st.session_state.page == "seller":
     # Back button to go back to main page
     if st.button("Back"):
         st.session_state.page = "main"
+
