@@ -23,39 +23,21 @@ b2 = B2(
 def fetch_data(bucket_name, file_name):
     try:
         # Set the bucket first
-        b2.set_bucket(bucket_name)
+        b2.set_bucket(bucket_name)  # Set the bucket before fetching the file
         # Fetch the object from Backblaze
-        obj = b2.get_object(file_name)
+        obj = b2.get_object(file_name)  # Use only the file name (remote_path)
         return obj.read()
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
         return None
-
-# Function to list files in the bucket
-def list_files_in_bucket(bucket_name):
-    try:
-        b2.set_bucket(bucket_name)
-        files = b2.list_files()
-        return files
-    except Exception as e:
-        st.error(f"Error listing files in Backblaze: {e}")
-        return []
 
 # Streamlit UI
 st.title('Backblaze Data Fetcher')
 bucket = st.text_input('Enter Bucket Name', value='AirBnB-CSV')  # Default bucket name
 file = st.text_input('Enter File Name')
 
-# Fetch Data Button
 if st.button('Fetch Data'):
     data = fetch_data(bucket, file)
     if data:
         st.write('Data:', data)  # Display data if successfully fetched
 
-# List Files Button
-if st.button('List Files'):
-    files = list_files_in_bucket(bucket)
-    if files:
-        st.write('Files in bucket:', files)
-    else:
-        st.write('No files found or error listing files.')
