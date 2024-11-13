@@ -22,7 +22,7 @@ b2 = B2(
 @st.cache_data
 def fetch_data():
     try:
-        b2.set_bucket('AirBnB-Bucket')  # Set the bucket
+        b2.set_bucket('AirBnB-CSV')  # Set the bucket
         obj = b2.get_object('Airbnb Dataset_Long.csv')  # Use the EXACT file name
         return pd.read_csv(obj)
     except Exception as e:
