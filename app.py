@@ -55,6 +55,28 @@ if st.session_state.page == "buyer":
     st.write("Buyer window placeholder. Replace with  implementation.")
 
 elif st.session_state.page == "seller":
-    st.write("Seller window placeholder. Replace with actual implementation.")
+    st.header("Estimate Your Airbnb Listing Review Score")
+
+    # Text inputs for seller
+    neighborhood_overview = st.text_input("Neighborhood Overview")
+    host_neighborhood = st.text_input("Host Neighborhood")
+    property_type = st.text_input("Property Type")
+    amenities = st.text_input("Included Amenities (comma separated)")
+    price = st.text_input("Price")
+
+    # Drop-down inputs for seller
+    bedrooms = st.selectbox("Number of Bedrooms", [1, 2, 3, 4, 5])
+    bathrooms = st.selectbox("Number of Bathrooms", [1, 2, 3, 4, 5])
+    beds = st.selectbox("Number of Beds", [1, 2, 3, 4, 5])
+
+    if st.button("Generate Review Score"):
+        # Generate a random score out of 5
+        review_score = round(random.uniform(1, 5), 2)
+        st.success(f"Estimated Review Score: {review_score} out of 5")
+
+    # Back button to go back to main page
+    if st.button("Back"):
+        st.session_state.page = "main"
+
 
 
