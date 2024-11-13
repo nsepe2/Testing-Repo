@@ -3,6 +3,7 @@ import os
 import streamlit as st
 import pandas as pd
 import random
+import pydeck as pdk
 from dotenv import load_dotenv
 from utils.b2 import B2
 
@@ -52,9 +53,8 @@ if data is not None:
     st.write("Data loaded successfully.")
     st.dataframe(data.head())
 
-# Placeholder for Buyer 
+# Buyer Page
 if st.session_state.page == "buyer":
-    if st.session_state.page == "buyer":
     st.header("Explore Listings in Austin, Texas")
     if data is not None:
         if 'latitude' in data.columns and 'longitude' in data.columns:
@@ -92,11 +92,10 @@ if st.session_state.page == "buyer":
 elif st.session_state.page == "seller":
     # Sidebar for Seller Input Form
     st.sidebar.title("Seller's Property Details")
-    property_types = ["House","Apartment","Condo","Townhouse"]
-    price_ranges = ["$10 - $500","$500 - $1000", "$1000- $5000", "$5000 - $10000", "$10000 - $50000"]
+    property_types = ["House", "Apartment", "Condo", "Townhouse"]
+    price_ranges = ["$10 - $500", "$500 - $1000", "$1000- $5000", "$5000 - $10000", "$10000 - $50000"]
 
     # Dropdown for Property Type
-    
     property_type = st.sidebar.selectbox("Property Type", property_types)
 
     # Dropdown for Price Range
@@ -128,9 +127,6 @@ elif st.session_state.page == "seller":
         random_score = random.randint(1, 5)
         st.markdown(f"## 🔥 **Predicted Score: {random_score}** 🔥")
 
-    # Back button to go back to main page
+# Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
-
-
-
