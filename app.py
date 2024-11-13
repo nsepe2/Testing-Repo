@@ -54,8 +54,39 @@ if data is not None:
 
 # Placeholder for Buyer 
 if st.session_state.page == "buyer":
-    # Start Code here for Buyer side, replace the code below.
-    st.write("Buyer window placeholder. Replace with implementation.")
+    if st.session_state.page == "buyer":
+    st.header("Explore Listings in Austin, Texas")
+    if data is not None:
+        if 'latitude' in data.columns and 'longitude' in data.columns:
+            # Add interactivity with Pydeck
+            st.pydeck_chart(pdk.Deck(
+                map_style='mapbox://styles/mapbox/streets-v11',
+                initial_view_state=pdk.ViewState(
+                    latitude=data['latitude'].mean(),
+                    longitude=data['longitude'].mean(),
+                    zoom=10,
+                    pitch=50,
+                ),
+                layers=[
+                    pdk.Layer(
+                        'ScatterplotLayer',
+                        data=data,
+                        get_position='[longitude, latitude]',
+                        get_color='[200, 30, 0, 160]',
+                        get_radius=200,
+                        pickable=True
+                    )
+                ],
+                tooltip={
+                    "html": "<b>Listing Name:</b> {name}<br/><b>Amenities:</b> {amenities}<br/><b>Price:</b> {price}",
+                    "style": {
+                        "backgroundColor": "steelblue",
+                        "color": "white"
+                    }
+                }
+            ))
+        else:
+            st.error("The dataset does not contain 'latitude' and 'longitude' columns.")
 
 # Rough Draft Seller
 elif st.session_state.page == "seller":
