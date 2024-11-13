@@ -54,15 +54,18 @@ if data is not None:
 
 # Placeholder for Buyer 
 if st.session_state.page == "buyer":
-    #Start Code here for Buyer side, replace the code below.
-    st.write("Buyer window placeholder. Replace with  implementation.")
+    # Start Code here for Buyer side, replace the code below.
+    st.write("Buyer window placeholder. Replace with implementation.")
 
-#Rough Draft Seller
+# Rough Draft Seller
 elif st.session_state.page == "seller":
     # Sidebar for Seller Input Form
     st.sidebar.title("Seller's Property Details")
+    property_types = ["House","Apartment","Condo","Townhouse"]
+    price_ranges = ["$10 - $500","$500 - $1000", "$1000- $5000", "$5000 - $10000", "$10000 - $50000"]
 
-# Dropdown for Property Type
+    # Dropdown for Property Type
+    
     property_type = st.sidebar.selectbox("Property Type", property_types)
 
     # Dropdown for Price Range
@@ -89,8 +92,8 @@ elif st.session_state.page == "seller":
         st.write(f"**Bedrooms:** {bedrooms}")
         st.write(f"**Bathrooms:** {bathrooms}")
         st.write(f"**Beds:** {beds}")
-        
-    # Generate and display a prominent random score
+
+        # Generate and display a prominent random score
         random_score = random.randint(1, 5)
         st.markdown(f"## 🔥 **Predicted Score: {random_score}** 🔥")
 
