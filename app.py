@@ -19,6 +19,7 @@ b2 = B2(
     secret_key=os.getenv('B2_APPKEY')
 )
 
+@st.cache_data
 def fetch_data():
     try:
         b2.set_bucket('AirBnB-Bucket')  # Set the bucket
