@@ -2,6 +2,7 @@ import sys
 import os
 import streamlit as st
 import pandas as pd
+import random
 from dotenv import load_dotenv
 from utils.b2 import B2
 
