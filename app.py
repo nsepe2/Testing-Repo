@@ -51,10 +51,12 @@ if data is not None:
     st.write("Data loaded successfully.")
     st.dataframe(data.head())
 
-# Placeholder for Buyer and Seller code to be added 
+# Placeholder for Buyer 
 if st.session_state.page == "buyer":
+    #Start Code here for Buyer side, replace the code below.
     st.write("Buyer window placeholder. Replace with  implementation.")
 
+#Rough Draft Seller
 elif st.session_state.page == "seller":
     st.header("Estimate Your Airbnb Listing Review Score")
 
@@ -72,6 +74,7 @@ elif st.session_state.page == "seller":
 
     if st.button("Generate Review Score"):
         # Generate a random score out of 5
+        #This will be replaced with a proper predictive model
         review_score = round(random.uniform(1, 5), 2)
         st.success(f"Estimated Review Score: {review_score} out of 5")
 
