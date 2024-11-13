@@ -74,6 +74,7 @@ elif st.session_state.page == "seller":
         review_score = round(random.uniform(1, 5), 2)
         st.success(f"Estimated Review Score: {review_score} out of 5")
 
+
     # Back button to go back to main page
     if st.button("Back"):
         st.session_state.page = "main"
