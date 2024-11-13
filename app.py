@@ -48,7 +48,7 @@ if st.session_state.page == "main":
 data = fetch_data()
 if data is not None:
     st.write("Data loaded successfully.")
-    st.dataframe(data.head()
+    st.dataframe(data.head())
 
 # Placeholder for Buyer and Seller code to be added 
 if st.session_state.page == "buyer":
