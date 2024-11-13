@@ -70,9 +70,9 @@ elif st.session_state.page == "seller":
     beds = st.selectbox("Number of Beds", [1, 2, 3, 4, 5])
 
     if st.button("Generate Review Score"):
-        # Generate a random score out of 5
-        review_score = round(random.uniform(1, 5), 2)
-        st.success(f"Estimated Review Score: {review_score} out of 5")
+    # Generate a random score out of 5
+    review_score = round(random.uniform(1, 5), 2)
+    st.success(f"Estimated Review Score: {review_score} out of 5")
 
     # Back button to go back to main page
     if st.button("Back"):
