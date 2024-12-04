@@ -2,10 +2,13 @@ import numpy as np
 import streamlit as st
 from sklearn.linear_model import LinearRegression
 import nltk
-from utils.modeling_sentiment import get_sentiment_score, encode_property_type, train_model
+from utils.modeling_sentiment import get_sentiment_score, encode_property_type, train_model, initialize_analyzer
 
-# Download VADER lexicon
+# Ensure VADER lexicon is downloaded
 nltk.download('vader_lexicon')
+
+# Initialize Sentiment Analyzer
+initialize_analyzer()
 
 # Train the Linear Regression model
 model = train_model()
@@ -68,3 +71,4 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
