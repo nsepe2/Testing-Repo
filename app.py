@@ -1,45 +1,14 @@
 import numpy as np
 import streamlit as st
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.linear_model import LinearRegression
-import ast
+import nltk
+from utils.modeling_sentiment import get_sentiment_score, encode_property_type, train_model
 
-# Initialize VADER sentiment analyzer
-analyzer = SentimentIntensityAnalyzer()
-
-# Generate sample training data (for demonstration purposes)
-np.random.seed(42)
-X_train = np.random.rand(100, 7)  # 100 samples, 7 features (accommodates, bathrooms, bedrooms, price, sentiments)
-y_train = np.random.rand(100) * 5  # Random review scores between 0 and 5
+# Download VADER lexicon
+nltk.download('vader_lexicon')
 
 # Train the Linear Regression model
-model = LinearRegression()
-model.fit(X_train, y_train)
-
-def predict_review_score(accommodates, bathrooms, bedrooms, price, neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment, property_type):
-    # Encoding property type (assuming one-hot encoding and pre-determined columns for property types)
-    property_type_encoded = encode_property_type(property_type)
-    
-    # Creating input data based on the features identified as slightly positive and sentiment analysis
-    input_data = np.array([[
-        accommodates, bathrooms, bedrooms, price,
-        neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
-    ] + property_type_encoded])
-
-    # Predicting the review score using the linear regression model
-    predicted_score = model.predict(input_data)
-    
-    return predicted_score[0]
-
-def encode_property_type(property_type):
-    # Dummy encoding for property types (example for property types: 'Entire home', 'Private room', 'Shared room')
-    property_types = ['Entire home', 'Private room', 'Shared room', 'Hotel room']
-    property_type_encoded = [1 if property == property_type else 0 for property in property_types]
-    return property_type_encoded
-
-def get_sentiment_score(text):
-    # Analyze sentiment using VADER and return the compound score
-    return analyzer.polarity_scores(text)['compound']
+model = train_model()
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -90,10 +59,10 @@ if st.session_state.page == "seller":
         st.write(f"**Amenities Sentiment:** {amenities_sentiment}")
 
         # Generate and display the predicted review score using the linear regression model
-        predicted_score = predict_review_score(
+        predicted_score = model.predict(np.array([[
             accommodates, bathrooms, bedrooms, price,
-            neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment, property_type
-        )
+            neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
+        ] + encode_property_type(property_type)]))[0]
         st.markdown(f"## 🔥 **Predicted Review Score Rating: {predicted_score:.2f}** 🔥")
 
 # Back button to go back to main page
