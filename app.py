@@ -17,6 +17,15 @@ model = train_model()
 if 'page' not in st.session_state:
     st.session_state.page = 'main'
 
+# Main Page Content
+if st.session_state.page == 'main':
+    st.title("Welcome to the Property Review Score Predictor")
+    st.write("Please select if you are a buyer or a seller to proceed.")
+    if st.button("I'm a Seller"):
+        st.session_state.page = 'seller'
+    if st.button("I'm a Buyer"):
+        st.write("Buyer page is under construction.")
+
 if st.session_state.page == "seller":
     # Sidebar for Seller Input Form
     st.sidebar.title("Seller's Property Details")
@@ -44,7 +53,7 @@ if st.session_state.page == "seller":
     # Flag to check if the submit button has been clicked
     submitted = st.sidebar.button("Submit Property")
 
-    # Main Page Content
+    # Seller Page Content
     if not submitted:
         # Display introductory text only if not submitted
         st.title("Seller's Property Submission")
@@ -71,4 +80,5 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
