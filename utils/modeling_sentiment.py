@@ -1,9 +1,15 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
+import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # Initialize VADER sentiment analyzer
-analyzer = SentimentIntensityAnalyzer()
+analyzer = None
+
+def initialize_analyzer():
+    global analyzer
+    nltk.download('vader_lexicon')
+    analyzer = SentimentIntensityAnalyzer()
 
 def get_sentiment_score(text):
     # Analyze sentiment using VADER and return the compound score
@@ -24,3 +30,4 @@ def train_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     return model
+
