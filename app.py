@@ -2,7 +2,7 @@ import numpy as np
 import streamlit as st
 from sklearn.linear_model import LinearRegression
 import nltk
-from utils.modeling_sentiment import get_sentiment_score, encode_property_type, train_model, initialize_analyzer
+from utils.modeling_sentiment import get_sentiment_score, encode_property_type, initialize_analyzer
 
 # Ensure VADER lexicon is downloaded
 nltk.download('vader_lexicon')
@@ -10,8 +10,14 @@ nltk.download('vader_lexicon')
 # Initialize Sentiment Analyzer
 initialize_analyzer()
 
+# Generate sample training data with encoded property types (for demonstration purposes)
+np.random.seed(42)
+X_train = np.random.rand(100, 11)  # 100 samples, 11 features (accommodates, bathrooms, bedrooms, price, sentiments, property type encoded)
+y_train = np.random.rand(100) * 5  # Random review scores between 0 and 5
+
 # Train the Linear Regression model
-model = train_model()
+model = LinearRegression()
+model.fit(X_train, y_train)
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -80,5 +86,6 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
 
