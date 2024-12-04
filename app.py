@@ -12,7 +12,10 @@ initialize_analyzer()
 
 # Generate sample training data with encoded property types (for demonstration purposes)
 np.random.seed(42)
-X_train = np.random.rand(100, 11)  # 100 samples, 11 features (accommodates, bathrooms, bedrooms, price, sentiments, property type encoded)
+property_types = ['Entire home', 'Private room', 'Shared room', 'Hotel room']
+property_type_encoded = [encode_property_type(pt) for pt in np.random.choice(property_types, 100)]
+other_features = np.random.rand(100, 7)  # 100 samples, 7 features (accommodates, bathrooms, bedrooms, price, sentiments)
+X_train = np.hstack((other_features, property_type_encoded))
 y_train = np.random.rand(100) * 5  # Random review scores between 0 and 5
 
 # Train the Linear Regression model
@@ -77,15 +80,17 @@ if st.session_state.page == "seller":
         st.write(f"**Amenities Sentiment:** {amenities_sentiment}")
 
         # Generate and display the predicted review score using the linear regression model
-        predicted_score = model.predict(np.array([[
+        input_features = np.array([[
             accommodates, bathrooms, bedrooms, price,
             neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
-        ] + encode_property_type(property_type)]))[0]
+        ] + encode_property_type(property_type)])
+        predicted_score = model.predict(input_features)[0]
         st.markdown(f"## 🔥 **Predicted Review Score Rating: {predicted_score:.2f}** 🔥")
 
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
 
 
