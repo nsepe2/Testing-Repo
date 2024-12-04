@@ -84,7 +84,8 @@ if st.session_state.page == "seller":
             accommodates, bathrooms, bedrooms, price,
             neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
         ] + encode_property_type(property_type)])
-        predicted_score = min(max(model.predict(input_features)[0], 0), 5)
+        predicted_score = model.predict(input_features)[0]
+        predicted_score = round(min(max(predicted_score, 0), 5), 2)
         st.markdown(f"## 🔥 **Predicted Review Score Rating: {predicted_score:.2f} / 5** 🔥")
 
 # Back button to go back to main page
