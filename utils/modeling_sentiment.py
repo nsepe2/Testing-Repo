@@ -1,7 +1,7 @@
 import os
 import pickle
-import numpy as np
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -17,12 +17,9 @@ b2 = B2(
     key_id=os.getenv('B2_KEYID'),
     secret_key=os.getenv('B2_APPKEY')
 )
-
-# Set bucket name directly
-bucket_name = 'AirBnB-CSV'
+bucket_name = os.getenv('B2_BUCKETNAME')
 b2.set_bucket(bucket_name)
 
-# Load and preprocess dataset
 def load_and_preprocess_data(remote_file_name):
     try:
         # Load the dataset from Backblaze B2
@@ -68,16 +65,8 @@ def train_model(data):
 
     return model, scaler
 
-# Initialize sentiment analyzer
-def initialize_analyzer():
-    nltk.download('vader_lexicon')
-    analyzer = SentimentIntensityAnalyzer()
-    # Save the analyzer to a pickle file for future reuse
-    with open('analyzer.pickle', 'wb') as f:
-        pickle.dump(analyzer, f)
-
 # Load or train the model
-def load_or_train_model(remote_file_name):
+def load_or_train_model():
     if os.path.exists('model.pickle'):
         # Load existing model and scaler from pickle
         with open('model.pickle', 'rb') as model_file:
@@ -85,28 +74,23 @@ def load_or_train_model(remote_file_name):
             return model_data['model'], model_data['scaler']
     else:
         # Train a new model and save it
+        remote_file_name = 'Airbnb Dataset_Long.csv'
         data = load_and_preprocess_data(remote_file_name)
         if data is not None:
             return train_model(data)
         else:
             raise ValueError("Failed to load data for training")
 
-# Load or initialize the sentiment analyzer
-def load_or_initialize_analyzer():
-    if os.path.exists('analyzer.pickle'):
-        # Load existing analyzer from pickle
-        with open('analyzer.pickle', 'rb') as f:
-            return pickle.load(f)
-    else:
-        # Initialize a new analyzer and save it
-        initialize_analyzer()
-        with open('analyzer.pickle', 'rb') as f:
-            return pickle.load(f)
+def initialize_analyzer():
+    analyzer = SentimentIntensityAnalyzer()
+    return analyzer
 
-# Load the dataset, train the model, and initialize scaler
-REMOTE_DATA = 'Airbnb Dataset_Long.csv'
-model, scaler = load_or_train_model(REMOTE_DATA)
-analyzer = load_or_initialize_analyzer()
+def get_sentiment_score(text, analyzer):
+    return analyzer.polarity_scores(text)['compound']
+
+def encode_property_type(property_type):
+    property_types = ['Entire home', 'Private room', 'Shared room', 'Hotel room']
+    return [1 if property == property_type else 0 for property in property_types]
 
 
 
