@@ -7,12 +7,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pickle
 import pandas as pd
 import streamlit as st
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from dotenv import load_dotenv
-from utils.b2 import B2
-from utils.modeling_sentiment import encode_property_type, load_or_train_model
+from utils.modeling_sentiment import encode_property_type, load_model
 
 def get_sentiment_score(text, analyzer):
     if text:
@@ -20,8 +16,12 @@ def get_sentiment_score(text, analyzer):
         return sentiment['compound']
     return 0  # Default sentiment score if text is missing
 
-# Load trained model and scaler from pickle file using load_or_train_model
-model, scaler = load_or_train_model()
+# Load trained model and scaler from pickle file
+try:
+    model, scaler, expected_features = load_model()
+except FileNotFoundError:
+    st.error("Model file not found. Please add the trained model.pickle to the utils folder.")
+    sys.exit()
 
 # Streamlit UI
 def main():
@@ -62,13 +62,6 @@ def main():
     input_data_encoded = encode_property_type(input_data)
 
     # Ensure the input data has all columns expected by the model
-    expected_features = [
-        'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price', 
-        'neighborhood_sentiment', 'host_neighborhood_sentiment', 
-        'amenities_sentiment', 'property_type_Apartment', 
-        'property_type_Condo', 'property_type_House', 'property_type_unknown'
-    ]
-    
     for missing_feature in expected_features:
         if missing_feature not in input_data_encoded.columns:
             if 'property_type' in missing_feature:
