@@ -17,7 +17,7 @@ def fetch_data():
     try:
         b2.set_bucket('B2_BUCKETNAME')  # Set the bucket
         obj = b2.get_object('Final_PROJ.xlsx')  # Use the EXACT file name
-        return pd.read_csv(obj)
+        return pd.read_excel(obj)
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
         return None
