@@ -36,8 +36,9 @@ def load_and_preprocess_data():
         
         print(f"Retrieved object type: {type(obj)}")
         
-        # Read data from Excel file
-        data = pd.read_excel(BytesIO(obj))  # Use BytesIO if obj is a byte stream
+        # Convert StreamingBody to bytes and then read with BytesIO
+        file_content = obj.read()  # Read the content of StreamingBody as bytes
+        data = pd.read_excel(BytesIO(file_content))  # Use BytesIO to convert to a file-like object
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
@@ -45,6 +46,7 @@ def load_and_preprocess_data():
         return data
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
+
 
 
 # Function to one-hot encode property type
