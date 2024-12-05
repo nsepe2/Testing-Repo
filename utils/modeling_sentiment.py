@@ -49,9 +49,13 @@ def load_and_preprocess_data():
         if not isinstance(file_content, bytes):
             raise ValueError("Error fetching data from Backblaze: Retrieved object is not in bytes format.")
         
+        # Debug: Check if the file_content is readable
+        print(f"File content size: {len(file_content)} bytes")  # Debugging line
+        
         # Try reading the Excel file content
         try:
             data = pd.read_excel(BytesIO(file_content), engine='openpyxl')  # Adding engine parameter
+            print("Excel file read successfully.")  # Debugging line
         except Exception as e:
             raise ValueError(f"Failed to read Excel file from Backblaze: {e}")
         
@@ -68,15 +72,27 @@ def load_and_preprocess_data():
             return sentiment['compound']
 
         # Add sentiment scores to the DataFrame
-        data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(get_sentiment_score)
-        data['host_neighborhood_sentiment'] = data['host_neighborhood'].apply(get_sentiment_score)
-        data['amenities_sentiment'] = data['amenities'].apply(get_sentiment_score)
+        if 'neighborhood_overview' in data.columns:
+            data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(get_sentiment_score)
+        else:
+            raise ValueError("Column 'neighborhood_overview' not found in the dataset")
+
+        if 'host_neighborhood' in data.columns:
+            data['host_neighborhood_sentiment'] = data['host_neighborhood'].apply(get_sentiment_score)
+        else:
+            raise ValueError("Column 'host_neighborhood' not found in the dataset")
+
+        if 'amenities' in data.columns:
+            data['amenities_sentiment'] = data['amenities'].apply(get_sentiment_score)
+        else:
+            raise ValueError("Column 'amenities' not found in the dataset")
 
         print("Data loaded, preprocessed, and sentiment analysis performed successfully.")
         return data
 
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
+
 
 # Function to encode property type
 def encode_property_type(X):
