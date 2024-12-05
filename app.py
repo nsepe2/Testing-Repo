@@ -66,27 +66,30 @@ def main():
                 # Add missing property type columns with a default value of 0
                 input_data_encoded[missing_feature] = 0
             else:
-                # Add missing numerical features with a default value of the mean or 0
+                # Add missing numerical features with a default value of 0
                 input_data_encoded[missing_feature] = 0
 
     # Reorder columns to match the expected features
     input_data_encoded = input_data_encoded[expected_features]
 
-    # Standardize features
-    try:
-        input_data_scaled = scaler.transform(input_data_encoded)
-    except ValueError as e:
-        st.error(f"Error during feature scaling: {e}")
-        st.stop()
+    # Add button to submit input data
+    if st.button("Predict Review Score"):
+        # Standardize features
+        try:
+            input_data_scaled = scaler.transform(input_data_encoded)
+        except ValueError as e:
+            st.error(f"Error during feature scaling: {e}")
+            st.stop()
 
-    # Make prediction
-    predicted_score = model.predict(input_data_scaled)[0]
+        # Make prediction
+        predicted_score = model.predict(input_data_scaled)[0]
 
-    st.subheader("Predicted Review Score")
-    st.write(f"The predicted review score for your listing is: {predicted_score:.2f}")
+        st.subheader("Predicted Review Score")
+        st.write(f"The predicted review score for your listing is: {predicted_score:.2f}")
 
 if __name__ == "__main__":
     main()
+
 
 
 
