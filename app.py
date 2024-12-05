@@ -1,20 +1,14 @@
 import os
-import sys
-from io import BytesIO
-
-# Add the parent directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pickle
 import pandas as pd
 import streamlit as st
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from utils.modeling_sentiment import encode_property_type, load_model
 
-# Utility function to get sentiment score using SentimentIntensityAnalyzer
 def get_sentiment_score(text, analyzer):
+    """Utility function to get sentiment score using SentimentIntensityAnalyzer."""
     if text:
         sentiment = analyzer.polarity_scores(text)
         return sentiment['compound']
@@ -24,8 +18,8 @@ def get_sentiment_score(text, analyzer):
 try:
     model, scaler, expected_features = load_model()
 except FileNotFoundError:
-    st.error("Model file not found. Please add the trained model.pickle to the appropriate location.")
-    sys.exit()
+    st.error("Model file not found. Please add the trained model.pickle.")
+    st.stop()
 
 # Streamlit UI
 def main():
@@ -39,14 +33,14 @@ def main():
     beds = st.number_input("Beds", min_value=1, step=1)
     price = st.number_input("Price (USD)", min_value=10, step=1)
     neighborhood_overview = st.text_area("Neighborhood Overview")
-    host_neighbourhood = st.text_area("Host Neighborhood Description")
+    host_neighborhood = st.text_area("Host Neighborhood Description")
     amenities = st.text_area("Amenities")
     property_type = st.selectbox("Property Type", ["Apartment", "House", "Condo", "unknown"])
 
     # Sentiment Analysis
     analyzer = SentimentIntensityAnalyzer()
     neighborhood_sentiment = get_sentiment_score(neighborhood_overview, analyzer)
-    host_neighbourhood_sentiment = get_sentiment_score(host_neighbourhood, analyzer)
+    host_neighborhood_sentiment = get_sentiment_score(host_neighborhood, analyzer)
     amenities_sentiment = get_sentiment_score(amenities, analyzer)
 
     # Prepare input data for prediction
@@ -57,7 +51,7 @@ def main():
         'beds': [beds],
         'price': [price],
         'neighborhood_sentiment': [neighborhood_sentiment],
-        'host_neighbourhood_sentiment': [host_neighbourhood_sentiment],
+        'host_neighbourhood_sentiment': [host_neighborhood_sentiment],
         'amenities_sentiment': [amenities_sentiment],
         'property_type': [property_type]
     })
@@ -69,12 +63,21 @@ def main():
     for missing_feature in expected_features:
         if missing_feature not in input_data_encoded.columns:
             if 'property_type' in missing_feature:
-                input_data_encoded[missing_feature] = 0  # Add missing property type columns with default value
+                # Add missing property type columns with a default value of 0
+                input_data_encoded[missing_feature] = 0
             else:
-                input_data_encoded[missing_feature] = input_data[missing_feature.split('_')[0]].mean()  # Use mean value for missing numerical features
+                # Add missing numerical features with a default value of the mean or 0
+                input_data_encoded[missing_feature] = 0
+
+    # Reorder columns to match the expected features
+    input_data_encoded = input_data_encoded[expected_features]
 
     # Standardize features
-    input_data_scaled = scaler.transform(input_data_encoded)
+    try:
+        input_data_scaled = scaler.transform(input_data_encoded)
+    except ValueError as e:
+        st.error(f"Error during feature scaling: {e}")
+        st.stop()
 
     # Make prediction
     predicted_score = model.predict(input_data_scaled)[0]
