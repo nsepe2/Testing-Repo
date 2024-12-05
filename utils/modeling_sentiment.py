@@ -69,8 +69,8 @@ def train_and_save_model():
             'amenities_sentiment', 'property_type'
         ]
         
-        if 'review_score_rating' not in data.columns:
-            raise ValueError("Target column 'review_score_rating' not found in dataset")
+        if 'review_scores_rating' not in data.columns:
+            raise ValueError("Target column 'review_scores_rating' not found in dataset")
 
         X = data[feature_columns]
         y = data['review_scores_rating']
