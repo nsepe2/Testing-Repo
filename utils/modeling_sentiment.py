@@ -1,5 +1,6 @@
 import os
 import sys
+from io import BytesIO
 
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -9,9 +10,8 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
-from utils.b2 import B2
-from io import BytesIO
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from utils.b2 import B2
 
 def load_and_preprocess_data():
     load_dotenv()  # Load environment variables
@@ -110,8 +110,8 @@ def train_and_save_model():
     except Exception as e:
         print(f"Error during model training and saving: {e}")
 
-# Function to load or train the model
-def load_or_train_model():
+# Function to load the trained model
+def load_model():
     model_path = os.path.join(os.path.dirname(__file__), 'model.pickle')
     if os.path.exists(model_path):
         with open(model_path, 'rb') as model_file:
@@ -119,12 +119,11 @@ def load_or_train_model():
             print("Loaded existing model from model.pickle")
             return model_data['model'], model_data['scaler'], model_data['expected_features']
     else:
-        print("Training a new model...")
-        train_and_save_model()
-        return load_or_train_model()  # Load the newly trained model
+        raise FileNotFoundError("model.pickle not found in the expected location")
 
 if __name__ == "__main__":
     train_and_save_model()
+
 
 
 
