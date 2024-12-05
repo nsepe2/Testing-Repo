@@ -1,27 +1,25 @@
 import os
-import sys
-
-# Add the parent directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pickle
 import pandas as pd
 import streamlit as st
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from utils.modeling_sentiment import encode_property_type, load_model
+from utils.modeling_sentiment import encode_property_type, load_or_train_model
 
 def get_sentiment_score(text, analyzer):
+    """Utility function to get sentiment score using SentimentIntensityAnalyzer"""
     if text:
         sentiment = analyzer.polarity_scores(text)
         return sentiment['compound']
-    return 0  # Default sentiment score if text is missing
+    return 0  # Default score if text is missing
 
 # Load trained model and scaler from pickle file
 try:
-    model, scaler, expected_features = load_model()
+    model, scaler, expected_features = load_or_train_model()
 except FileNotFoundError:
-    st.error("Model file not found. Please add the trained model.pickle to the utils folder.")
-    sys.exit()
+    st.error("Model file not found. Please run the training script to create model.pickle.")
+    st.stop()
 
 # Streamlit UI
 def main():
@@ -64,10 +62,11 @@ def main():
     # Ensure the input data has all columns expected by the model
     for missing_feature in expected_features:
         if missing_feature not in input_data_encoded.columns:
+            # Handle missing feature based on type
             if 'property_type' in missing_feature:
-                input_data_encoded[missing_feature] = 0  # Add missing property type columns with default value
+                input_data_encoded[missing_feature] = 0  # Set one-hot encoded feature to 0 by default
             else:
-                input_data_encoded[missing_feature] = input_data[missing_feature.split('_')[0]].mean()  # Use mean value for missing numerical features
+                input_data_encoded[missing_feature] = 0  # Set numerical features to 0 by default
 
     # Standardize features
     input_data_scaled = scaler.transform(input_data_encoded)
@@ -80,6 +79,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
