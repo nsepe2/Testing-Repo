@@ -1,17 +1,32 @@
+import os
 import numpy as np
 import pandas as pd
+import pickle
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from dotenv import load_dotenv
+from utils.b2 import B2
 
 # Initialize VADER sentiment analyzer
 analyzer = None
 
+# Load environment variables
+load_dotenv()
+
+# Initialize Backblaze B2 connection
+b2 = B2(
+    endpoint=os.getenv('B2_ENDPOINT'),
+    key_id=os.getenv('B2_KEYID'),
+    secret_key=os.getenv('B2_APPKEY')
+)
+b2.set_bucket(os.getenv('B2_BUCKETNAME'))
+
 # Load and preprocess dataset
-def load_and_preprocess_data(file_path):
-    # Load the dataset using pandas
-    data = pd.read_excel(file_path)
+def load_and_preprocess_data(remote_file_name):
+    # Load the dataset from Backblaze B2
+    data = b2.get_df(remote_file_name)
 
     # Select relevant columns and drop missing values
     columns_to_use = ['property_type', 'room_type', 'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price', 'review_score_rating']
@@ -43,6 +58,10 @@ def train_model(data):
     model = LinearRegression()
     model.fit(X_train, y_train)
 
+    # Save the trained model and scaler to a pickle file
+    with open('model.pickle', 'wb') as model_file:
+        pickle.dump({'model': model, 'scaler': scaler}, model_file)
+
     return model, scaler
 
 # Initialize sentiment analyzer
@@ -63,11 +82,12 @@ def encode_property_type(property_type):
     return [1 if property == property_type else 0 for property in property_types]
 
 # Load the dataset, train the model, and initialize scaler
-file_path = '/Users/nasase/Downloads/Final_PROJ.xlsx'
-data = load_and_preprocess_data(file_path)
+REMOTE_DATA = 'Final_PROJ.xlsx'
+data = load_and_preprocess_data(REMOTE_DATA)
 model, scaler = train_model(data)
 
 # Ensure VADER lexicon is downloaded and initialize analyzer
 initialize_analyzer()
+
 
 
