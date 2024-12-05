@@ -1,68 +1,93 @@
 import os
 import sys
-import streamlit as st
-import pandas as pd
-import pickle
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from dotenv import load_dotenv
 
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.modeling_sentiment import load_or_train_model, encode_property_type
 
-# Load environment variables
-load_dotenv()
+import pickle
+import pandas as pd
+import streamlit as st
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from dotenv import load_dotenv
+from utils.b2 import B2
+from utils.modeling_sentiment import encode_property_type, load_or_train_model
+
+def get_sentiment_score(text, analyzer):
+    if text:
+        sentiment = analyzer.polarity_scores(text)
+        return sentiment['compound']
+    return 0  # Default sentiment score if text is missing
 
 # Load trained model and scaler from pickle file
-model, scaler = load_or_train_model()
+if os.path.exists('model.pickle'):
+    with open('model.pickle', 'rb') as model_file:
+        model_data = pickle.load(model_file)
+        model = model_data['model']
+        scaler = model_data['scaler']
+else:
+    st.error("Model file not found. Please run the training script to create model.pickle.")
+    sys.exit()
 
-# Set up Streamlit app interface
-st.title('Airbnb Review Score Prediction')
+# Streamlit UI
+def main():
+    st.title("Airbnb Review Score Prediction")
+    st.write("Provide details of your potential listing to predict the review score.")
 
-# Get user inputs
-st.header('Input Listing Details')
-accommodates = st.number_input('Number of Guests Accommodates', min_value=1, step=1)
-bathrooms = st.number_input('Number of Bathrooms', min_value=0.5, step=0.5)
-bedrooms = st.number_input('Number of Bedrooms', min_value=1, step=1)
-beds = st.number_input('Number of Beds', min_value=1, step=1)
-price = st.number_input('Price per Night (USD)', min_value=1.0, step=0.5)
+    # User inputs for prediction
+    accommodates = st.number_input("Accommodates", min_value=1, step=1)
+    bathrooms = st.number_input("Bathrooms", min_value=0.5, step=0.5)
+    bedrooms = st.number_input("Bedrooms", min_value=1, step=1)
+    beds = st.number_input("Beds", min_value=1, step=1)
+    price = st.number_input("Price (USD)", min_value=10, step=1)
+    neighborhood_overview = st.text_area("Neighborhood Overview")
+    host_neighborhood = st.text_area("Host Neighborhood Description")
+    amenities = st.text_area("Amenities")
+    property_type = st.selectbox("Property Type", ["Apartment", "House", "Condo", "unknown"])
 
-neighborhood_overview = st.text_area('Neighborhood Overview')
-host_neighbourhood = st.text_area('Host Neighborhood Description')
-amenities = st.text_area('Amenities (list)')
+    # Sentiment Analysis
+    analyzer = SentimentIntensityAnalyzer()
+    neighborhood_sentiment = get_sentiment_score(neighborhood_overview, analyzer)
+    host_neighborhood_sentiment = get_sentiment_score(host_neighborhood, analyzer)
+    amenities_sentiment = get_sentiment_score(amenities, analyzer)
 
-property_type = st.selectbox('Property Type', ['Apartment', 'House', 'Condo', 'Loft', 'Other'])
+    # Prepare input data for prediction
+    input_data = pd.DataFrame({
+        'accommodates': [accommodates],
+        'bathrooms': [bathrooms],
+        'bedrooms': [bedrooms],
+        'beds': [beds],
+        'price': [price],
+        'neighborhood_sentiment': [neighborhood_sentiment],
+        'host_neighborhood_sentiment': [host_neighborhood_sentiment],
+        'amenities_sentiment': [amenities_sentiment],
+        'property_type': [property_type]
+    })
 
-if st.button('Predict Review Score'):
-    try:
-        # Sentiment Analysis for the user input
-        analyzer = SentimentIntensityAnalyzer()
-        neighborhood_sentiment = analyzer.polarity_scores(neighborhood_overview)['compound']
-        host_neighbourhood_sentiment = analyzer.polarity_scores(host_neighbourhood)['compound']
-        amenities_sentiment = analyzer.polarity_scores(amenities)['compound']
+    # One-hot encode 'property_type'
+    input_data_encoded = encode_property_type(input_data)
 
-        # Create DataFrame for model prediction
-        input_data = pd.DataFrame({
-            'accommodates': [accommodates],
-            'bathrooms': [bathrooms],
-            'bedrooms': [bedrooms],
-            'beds': [beds],
-            'price': [price],
-            'neighborhood_sentiment': [neighborhood_sentiment],
-            'host_neighbourhood_sentiment': [host_neighbourhood_sentiment],
-            'amenities_sentiment': [amenities_sentiment],
-            'property_type': [property_type]
-        })
+    # Ensure the input data has all columns expected by the model
+    for missing_feature in model_data['expected_features']:
+        if missing_feature not in input_data_encoded.columns:
+            if 'property_type' in missing_feature:
+                input_data_encoded[missing_feature] = 0  # Add missing property type columns with default value
+            else:
+                input_data_encoded[missing_feature] = input_data[missing_feature.split('_')[0]].mean()  # Use mean value for missing numerical features
 
-        # One-hot encode 'property_type'
-        input_data_encoded = encode_property_type(input_data)
+    # Standardize features
+    input_data_scaled = scaler.transform(input_data_encoded)
 
-        # Align columns with the model features
-        all_columns = scaler.mean_.shape[0]
-        missing_cols = all_columns - input_data_encoded.shape[1]
-        if missing_cols > 0:
-            for i in range(missing_cols):
-                input_data_encoded[f'missing_{i}']=
+    # Make prediction
+    predicted_score = model.predict(input_data_scaled)[0]
+
+    st.subheader("Predicted Review Score")
+    st.write(f"The predicted review score for your listing is: {predicted_score:.2f}")
+
+if __name__ == "__main__":
+    main()
+
 
 
 
