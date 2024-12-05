@@ -11,8 +11,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
 from utils.b2 import B2
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# Function to load data from Backblaze
+# Function to load data from Backblaze and perform sentiment analysis
 def load_and_preprocess_data():
     load_dotenv()  # Load environment variables
     try:
@@ -41,11 +42,25 @@ def load_and_preprocess_data():
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
-        print("Data loaded and preprocessed successfully.")
+
+        # Perform sentiment analysis
+        analyzer = SentimentIntensityAnalyzer()
+
+        def get_sentiment_score(text):
+            if pd.isna(text):
+                return 0  # Default score if there's no text
+            sentiment = analyzer.polarity_scores(text)
+            return sentiment['compound']
+
+        # Add sentiment scores to the DataFrame
+        data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(get_sentiment_score)
+        data['host_neighborhood_sentiment'] = data['host_neighborhood'].apply(get_sentiment_score)
+        data['amenities_sentiment'] = data['amenities'].apply(get_sentiment_score)
+
+        print("Data loaded, preprocessed, and sentiment analysis performed successfully.")
         return data
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
-
 
 # Function to encode property type
 def encode_property_type(X):
@@ -108,6 +123,7 @@ def load_model():
 
 if __name__ == "__main__":
     train_and_save_model()
+
 
 
 
