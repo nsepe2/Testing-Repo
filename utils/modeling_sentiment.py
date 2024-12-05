@@ -39,6 +39,13 @@ def load_and_preprocess_data():
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
 
+# Function to one-hot encode property type
+def encode_property_type(X):
+    """One-hot encodes the property_type column."""
+    if 'property_type' in X.columns:
+        X = pd.get_dummies(X, columns=['property_type'])
+    return X
+
 # Train the model and save it as model.pickle
 def train_and_save_model():
     try:
@@ -59,7 +66,7 @@ def train_and_save_model():
         y = data['review_score_rating']
 
         # One-hot encode 'property_type'
-        X = pd.get_dummies(X, columns=['property_type'])
+        X = encode_property_type(X)
 
         # Standardize features
         scaler = StandardScaler()
@@ -79,8 +86,22 @@ def train_and_save_model():
     except Exception as e:
         print(f"Error during model training and saving: {e}")
 
+# Function to load or train the model
+def load_or_train_model():
+    model_path = os.path.join(os.path.dirname(__file__), 'model.pickle')
+    if os.path.exists(model_path):
+        with open(model_path, 'rb') as model_file:
+            model_data = pickle.load(model_file)
+            print("Loaded existing model from model.pickle")
+            return model_data['model'], model_data['scaler']
+    else:
+        print("Training a new model...")
+        train_and_save_model()
+        return load_or_train_model()  # Load the newly trained model
+
 if __name__ == "__main__":
     train_and_save_model()
+
 
 
 
