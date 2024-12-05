@@ -1,6 +1,8 @@
 import os
 import sys
+from io import BytesIO
 
+# Add the parent directory to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pickle
@@ -33,8 +35,9 @@ def load_and_preprocess_data():
         if obj is None:
             raise ValueError("Failed to get the object from Backblaze bucket")
         
-        # Read data from Excel file
-        data = pd.read_excel(obj)
+        # Convert StreamingBody to BytesIO
+        file_content = obj.read()  # Read the content of StreamingBody as bytes
+        data = pd.read_excel(BytesIO(file_content))  # Use BytesIO to read into pandas
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
@@ -42,6 +45,7 @@ def load_and_preprocess_data():
         return data
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
+
 
 # Function to encode property type
 def encode_property_type(X):
