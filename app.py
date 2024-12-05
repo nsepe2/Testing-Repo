@@ -1,12 +1,17 @@
 import streamlit as st
 import numpy as np
+import pickle
 from utils.modeling_sentiment import (
     get_sentiment_score,
     encode_property_type,
-    model,
-    scaler,
     initialize_analyzer
 )
+
+# Load trained model and scaler
+with open('model.pickle', 'rb') as model_file:
+    model_data = pickle.load(model_file)
+    model = model_data['model']
+    scaler = model_data['scaler']
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -22,8 +27,9 @@ if st.session_state.page == 'main':
         st.write("Buyer page is under construction.")
 
 if st.session_state.page == "seller":
-    # Sidebar for Seller Input Form
     st.sidebar.title("Seller's Property Details")
+
+    # Sidebar for Seller Input Form
     property_types = ["Entire home", "Private room", "Shared room", "Hotel room"]
     price = st.sidebar.number_input("Price", min_value=10, max_value=50000, value=150)
 
