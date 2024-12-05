@@ -3,27 +3,21 @@ import sys
 import numpy as np
 import streamlit as st
 import pickle
-from dotenv import load_dotenv
 
 # Add the utils directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
 
-from utils.modeling_sentiment import (
-    get_sentiment_score,
-    encode_property_type,
-    initialize_analyzer,
-    load_or_train_model,
-    fetch_data
-)
+from utils.modeling_sentiment import encode_property_type
 
-# Load environment variables
-load_dotenv()
-
-# Load trained model, scaler, and analyzer
-model, scaler = load_or_train_model()
-
-# Load the sentiment analyzer
-initialize_analyzer()
+# Load trained model and scaler from pickle file
+if os.path.exists('model.pickle'):
+    with open('model.pickle', 'rb') as model_file:
+        model_data = pickle.load(model_file)
+        model = model_data['model']
+        scaler = model_data['scaler']
+else:
+    st.error("Model file not found. Please run the training script to create model.pickle.")
+    st.stop()
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -40,12 +34,6 @@ if st.session_state.page == 'main':
 
 if st.session_state.page == "seller":
     st.sidebar.title("Seller's Property Details")
-
-    # Load and preprocess data
-    data = fetch_data()
-    if data is None:
-        st.error("Could not load dataset for training. Please check your Backblaze settings.")
-        st.stop()
 
     # Sidebar for Seller Input Form
     property_types = ["Entire home", "Private room", "Shared room", "Hotel room"]
@@ -65,7 +53,10 @@ if st.session_state.page == "seller":
     host_neighborhood = st.sidebar.text_area("Host Neighborhood", "Enter details about the host's neighborhood...")
     amenities = st.sidebar.text_area("Amenities", "Enter details about the amenities available...")
 
-    # Calculate sentiment scores using the loaded analyzer
+    # Calculate sentiment scores (using a pre-defined function)
+    def get_sentiment_score(text):
+        return analyzer.polarity_scores(text)['compound']
+
     neighborhood_sentiment = get_sentiment_score(neighborhood_overview)
     host_neighborhood_sentiment = get_sentiment_score(host_neighborhood)
     amenities_sentiment = get_sentiment_score(amenities)
@@ -102,6 +93,7 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
 
 
