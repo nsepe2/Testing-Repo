@@ -110,7 +110,7 @@ def train_and_save_model():
 
 # Function to load or train the model
 def load_or_train_model():
-    model_path = os.path.join(os.path.dirname(__file__), 'model.pickle')
+    model_path = os.path.join(os.path.dirname(__file__), 'utils', 'model.pickle')  # Updated path to utils/model.pickle
     if os.path.exists(model_path):
         with open(model_path, 'rb') as model_file:
             model_data = pickle.load(model_file)
