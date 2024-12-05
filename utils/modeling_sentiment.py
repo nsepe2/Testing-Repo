@@ -1,11 +1,10 @@
 import os
+import pickle
 import numpy as np
 import pandas as pd
-import pickle
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 from utils.b2 import B2
 
@@ -71,29 +70,44 @@ def train_model(data):
 
 # Initialize sentiment analyzer
 def initialize_analyzer():
-    global analyzer
     nltk.download('vader_lexicon')
     analyzer = SentimentIntensityAnalyzer()
+    # Save the analyzer to a pickle file for future reuse
+    with open('analyzer.pickle', 'wb') as f:
+        pickle.dump(analyzer, f)
 
-# Get sentiment score
-def get_sentiment_score(text):
-    # Analyze sentiment using VADER and return the compound score
-    return analyzer.polarity_scores(text)['compound']
+# Load or train the model
+def load_or_train_model(remote_file_name):
+    if os.path.exists('model.pickle'):
+        # Load existing model and scaler from pickle
+        with open('model.pickle', 'rb') as model_file:
+            model_data = pickle.load(model_file)
+            return model_data['model'], model_data['scaler']
+    else:
+        # Train a new model and save it
+        data = load_and_preprocess_data(remote_file_name)
+        if data is not None:
+            return train_model(data)
+        else:
+            raise ValueError("Failed to load data for training")
 
-# Encode property type
-def encode_property_type(property_type):
-    # Dummy encoding for property types
-    property_types = ['Entire home', 'Private room', 'Shared room', 'Hotel room']
-    return [1 if property == property_type else 0 for property in property_types]
+# Load or initialize the sentiment analyzer
+def load_or_initialize_analyzer():
+    if os.path.exists('analyzer.pickle'):
+        # Load existing analyzer from pickle
+        with open('analyzer.pickle', 'rb') as f:
+            return pickle.load(f)
+    else:
+        # Initialize a new analyzer and save it
+        initialize_analyzer()
+        with open('analyzer.pickle', 'rb') as f:
+            return pickle.load(f)
 
 # Load the dataset, train the model, and initialize scaler
 REMOTE_DATA = 'Airbnb Dataset_Long.csv'
-data = load_and_preprocess_data(REMOTE_DATA)
-if data is not None:
-    model, scaler = train_model(data)
+model, scaler = load_or_train_model(REMOTE_DATA)
+analyzer = load_or_initialize_analyzer()
 
-# Ensure VADER lexicon is downloaded and initialize analyzer
-initialize_analyzer()
 
 
 
