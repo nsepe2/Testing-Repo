@@ -1,19 +1,36 @@
-import streamlit as st
+import os
+import sys
 import numpy as np
+import streamlit as st
 import pickle
+
+# Add the utils directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
+
 from utils.modeling_sentiment import (
     get_sentiment_score,
-    encode_property_type
+    encode_property_type,
+    initialize_analyzer,
+    load_and_preprocess_data,
+    train_model
 )
 
 # Load trained model, scaler, and analyzer from pickle files
-with open('model.pickle', 'rb') as model_file:
-    model_data = pickle.load(model_file)
-    model = model_data['model']
-    scaler = model_data['scaler']
+if os.path.exists('model.pickle'):
+    with open('model.pickle', 'rb') as model_file:
+        model_data = pickle.load(model_file)
+        model = model_data['model']
+        scaler = model_data['scaler']
+else:
+    st.error("Model file not found. Please run the training script to create model.pickle.")
+    st.stop()
 
-with open('analyzer.pickle', 'rb') as analyzer_file:
-    analyzer = pickle.load(analyzer_file)
+if os.path.exists('analyzer.pickle'):
+    with open('analyzer.pickle', 'rb') as analyzer_file:
+        analyzer = pickle.load(analyzer_file)
+else:
+    st.error("Sentiment analyzer file not found. Please run the training script to create analyzer.pickle.")
+    st.stop()
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -89,6 +106,7 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
 
 
