@@ -45,6 +45,48 @@ def encode_property_type(X):
         X = pd.get_dummies(X, columns=['property_type'])
     return X
 
+# Train the model and save it as model.pickle
+def train_and_save_model():
+    try:
+        # Load and preprocess data
+        data = load_and_preprocess_data()
+
+        # Extract features and target
+        feature_columns = [
+            'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price',
+            'neighborhood_sentiment', 'host_neighborhood_sentiment',
+            'amenities_sentiment', 'property_type'
+        ]
+        
+        if 'review_scores_rating' not in data.columns:
+            raise ValueError("Target column 'review_scores_rating' not found in dataset")
+
+        X = data[feature_columns]
+        y = data['review_scores_rating']
+
+        # One-hot encode 'property_type'
+        X = encode_property_type(X)
+
+        # Standardize features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # Train the model
+        model = LinearRegression()
+        model.fit(X_scaled, y)
+
+        # Save the model, scaler, and expected features to a pickle file
+        save_path = os.path.join(os.path.dirname(__file__), 'utils', 'model.pickle')
+        expected_features = list(X.columns)  # Capture the expected features
+
+        with open(save_path, 'wb') as model_file:
+            pickle.dump({'model': model, 'scaler': scaler, 'expected_features': expected_features}, model_file)
+
+        print("Model, scaler, and expected features saved successfully as model.pickle")
+
+    except Exception as e:
+        print(f"Error during model training and saving: {e}")
+
 # Function to load the trained model
 def load_model():
     model_path = os.path.join(os.path.dirname(__file__), 'utils', 'model.pickle')
@@ -57,12 +99,8 @@ def load_model():
         raise FileNotFoundError("model.pickle not found in the expected location")
 
 if __name__ == "__main__":
-    try:
-        # Load the existing model
-        model, scaler, expected_features = load_model()
-        print("Model loaded successfully, ready for use in predictions.")
-    except FileNotFoundError as e:
-        print(e)
+    train_and_save_model()
+
 
 
 
