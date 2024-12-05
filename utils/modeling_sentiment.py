@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
 from utils.b2 import B2
 from io import BytesIO
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 def load_and_preprocess_data():
     load_dotenv()  # Load environment variables
@@ -42,12 +43,23 @@ def load_and_preprocess_data():
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
+
+        # Sentiment Analysis for text columns
+        analyzer = SentimentIntensityAnalyzer()
+        data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(
+            lambda x: analyzer.polarity_scores(x)['compound'] if isinstance(x, str) else 0
+        )
+        data['host_neighbourhood_sentiment'] = data['host_neighbourhood'].apply(
+            lambda x: analyzer.polarity_scores(x)['compound'] if isinstance(x, str) else 0
+        )
+        data['amenities_sentiment'] = data['amenities'].apply(
+            lambda x: analyzer.polarity_scores(x)['compound'] if isinstance(x, str) else 0
+        )
+
         print("Data loaded and preprocessed successfully.")
         return data
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
-
-
 
 # Function to one-hot encode property type
 def encode_property_type(X):
@@ -65,7 +77,7 @@ def train_and_save_model():
         # Extract features and target
         feature_columns = [
             'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price',
-            'neighborhood_sentiment', 'host_neighborhood_sentiment',
+            'neighborhood_sentiment', 'host_neighbourhood_sentiment',
             'amenities_sentiment', 'property_type'
         ]
         
@@ -111,6 +123,8 @@ def load_or_train_model():
 
 if __name__ == "__main__":
     train_and_save_model()
+
+
 
 
 
