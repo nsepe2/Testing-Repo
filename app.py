@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from utils.modeling_sentiment import encode_property_type, load_model
 import sys
 from utils.b2 import B2
+from dotenv import load_dotenv
 
 # Add the utils directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
