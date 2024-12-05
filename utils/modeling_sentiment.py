@@ -98,12 +98,14 @@ def train_and_save_model():
         model = LinearRegression()
         model.fit(X_scaled, y)
 
-        # Save the model and scaler to a pickle file
+        # Save the model, scaler, and expected features to a pickle file
         save_path = os.path.join(os.path.dirname(__file__), 'model.pickle')
-        with open(save_path, 'wb') as model_file:
-            pickle.dump({'model': model, 'scaler': scaler}, model_file)
+        expected_features = list(X.columns)  # Capture the expected features
 
-        print("Model and scaler saved successfully as model.pickle")
+        with open(save_path, 'wb') as model_file:
+            pickle.dump({'model': model, 'scaler': scaler, 'expected_features': expected_features}, model_file)
+
+        print("Model, scaler, and expected features saved successfully as model.pickle")
 
     except Exception as e:
         print(f"Error during model training and saving: {e}")
@@ -115,7 +117,7 @@ def load_or_train_model():
         with open(model_path, 'rb') as model_file:
             model_data = pickle.load(model_file)
             print("Loaded existing model from model.pickle")
-            return model_data['model'], model_data['scaler']
+            return model_data['model'], model_data['scaler'], model_data['expected_features']
     else:
         print("Training a new model...")
         train_and_save_model()
@@ -123,6 +125,7 @@ def load_or_train_model():
 
 if __name__ == "__main__":
     train_and_save_model()
+
 
 
 
