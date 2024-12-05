@@ -78,8 +78,6 @@ def load_and_preprocess_data():
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
 
-
-
 # Function to encode property type
 def encode_property_type(X):
     if 'property_type' in X.columns:
