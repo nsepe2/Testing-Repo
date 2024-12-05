@@ -9,37 +9,42 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 from utils.b2 import B2
 
-# Initialize VADER sentiment analyzer
-analyzer = None
-
 # Load environment variables
 load_dotenv()
 
-# Initialize Backblaze B2 connection
+# Set Backblaze connection
 b2 = B2(
-    endpoint=os.getenv('B2_ENDPOINT'),
+    endpoint=os.getenv('B2_ENDPOINT', 's3.us-east-005.backblaze.com'),
     key_id=os.getenv('B2_KEYID'),
     secret_key=os.getenv('B2_APPKEY')
 )
-b2.set_bucket(os.getenv('B2_BUCKETNAME'))
+
+# Set bucket name directly
+bucket_name = 'AirBnB-CSV'
+b2.set_bucket(bucket_name)
 
 # Load and preprocess dataset
 def load_and_preprocess_data(remote_file_name):
-    # Load the dataset from Backblaze B2
-    data = b2.get_df(remote_file_name)
+    try:
+        # Load the dataset from Backblaze B2
+        obj = b2.get_object(remote_file_name)
+        data = pd.read_csv(obj)
 
-    # Select relevant columns and drop missing values
-    columns_to_use = ['property_type', 'room_type', 'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price', 'review_score_rating']
-    data = data[columns_to_use].dropna()
+        # Select relevant columns and drop missing values
+        columns_to_use = ['property_type', 'room_type', 'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price', 'review_score_rating']
+        data = data[columns_to_use].dropna()
 
-    # Encode categorical features
-    property_types = data['property_type'].unique().tolist()
+        # Encode categorical features
+        property_types = data['property_type'].unique().tolist()
 
-    def encode_property_type(property_type):
-        return [1 if property == property_type else 0 for property in property_types]
+        def encode_property_type(property_type):
+            return [1 if property == property_type else 0 for property in property_types]
 
-    data['property_type_encoded'] = data['property_type'].apply(encode_property_type)
-    return data
+        data['property_type_encoded'] = data['property_type'].apply(encode_property_type)
+        return data
+    except Exception as e:
+        print(f"Error fetching data from Backblaze: {e}")
+        return None
 
 # Train the model
 def train_model(data):
@@ -82,12 +87,14 @@ def encode_property_type(property_type):
     return [1 if property == property_type else 0 for property in property_types]
 
 # Load the dataset, train the model, and initialize scaler
-REMOTE_DATA = 'Final_PROJ.xlsx'
+REMOTE_DATA = 'Airbnb Dataset_Long.csv'
 data = load_and_preprocess_data(REMOTE_DATA)
-model, scaler = train_model(data)
+if data is not None:
+    model, scaler = train_model(data)
 
 # Ensure VADER lexicon is downloaded and initialize analyzer
 initialize_analyzer()
+
 
 
 
