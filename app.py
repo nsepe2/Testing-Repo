@@ -8,20 +8,20 @@ from sklearn.preprocessing import StandardScaler
 from utils.modeling_sentiment import encode_property_type, load_model
 
 def get_sentiment_score(text, analyzer):
-    """Utility function to get sentiment score using SentimentIntensityAnalyzer."""
+    """Function to get sentiment score via SentimentIntensityAnalyzer."""
     if text:
         sentiment = analyzer.polarity_scores(text)
         return sentiment['compound']
-    return 0  # Default sentiment score if text is missing
+    return None  # Default sentiment score if text is missing
 
-# Load trained model and scaler from pickle file
+# Load trained model from pickle file
 try:
     model, scaler, expected_features = load_model()
 except FileNotFoundError:
-    st.error("Model file not found. Please add the trained model.pickle.")
+    st.error("Model file not found. Please add the trained model")
     st.stop()
 
-# Streamlit UI
+# Streamlit APP UI
 def main():
     st.title("Airbnb Review Score Prediction")
     st.write("Provide details of your potential listing to predict the review score.")
@@ -56,10 +56,10 @@ def main():
         'property_type': [property_type]
     })
 
-    # One-hot encode 'property_type'
+    # Turns property type numerical
     input_data_encoded = encode_property_type(input_data)
 
-    # Ensure the input data has all columns expected by the model
+    # Ensure the input data has all columns expected 
     for missing_feature in expected_features:
         if missing_feature not in input_data_encoded.columns:
             if 'property_type' in missing_feature:
