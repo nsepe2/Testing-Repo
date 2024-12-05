@@ -1,111 +1,108 @@
 import os
-import sys
-import numpy as np
-import streamlit as st
 import pickle
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from dotenv import load_dotenv
+from utils.b2 import B2
 
-# Add the utils directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
+# Load environment variables
+load_dotenv()
 
-from utils.modeling_sentiment import (
-    get_sentiment_score,
-    encode_property_type,
-    initialize_analyzer,
-    load_and_preprocess_data,
-    train_model
+# Set Backblaze connection
+b2 = B2(
+    endpoint=os.getenv('B2_ENDPOINT', 's3.us-east-005.backblaze.com'),
+    key_id=os.getenv('B2_KEYID'),
+    secret_key=os.getenv('B2_APPKEY')
 )
 
-# Load trained model, scaler, and analyzer from pickle files
-if os.path.exists('model.pickle'):
-    with open('model.pickle', 'rb') as model_file:
-        model_data = pickle.load(model_file)
-        model = model_data['model']
-        scaler = model_data['scaler']
-else:
-    st.error("Model file not found. Please run the training script to create model.pickle.")
-    st.stop()
+bucket_name = os.getenv('B2_BUCKETNAME')
+b2.set_bucket(bucket_name)
 
-if os.path.exists('analyzer.pickle'):
-    with open('analyzer.pickle', 'rb') as analyzer_file:
-        analyzer = pickle.load(analyzer_file)
-else:
-    st.error("Sentiment analyzer file not found. Please run the training script to create analyzer.pickle.")
-    st.stop()
+def load_and_preprocess_data(remote_file_name):
+    try:
+        # Attempt to load the dataset from Backblaze B2
+        obj = b2.get_object(remote_file_name)
+        data = pd.read_csv(obj)
 
-# Streamlit Interface
-if 'page' not in st.session_state:
-    st.session_state.page = 'main'
+        # Select relevant columns and drop missing values
+        columns_to_use = ['property_type', 'room_type', 'accommodates', 'bathrooms', 'bedrooms', 'beds', 'price', 'review_score_rating']
+        data = data[columns_to_use].dropna()
 
-# Main Page Content
-if st.session_state.page == 'main':
-    st.title("Welcome to the Property Review Score Predictor")
-    st.write("Please select if you are a buyer or a seller to proceed.")
-    if st.button("I'm a Seller"):
-        st.session_state.page = 'seller'
-    if st.button("I'm a Buyer"):
-        st.write("Buyer page is under construction.")
+        # Encode categorical features
+        property_types = data['property_type'].unique().tolist()
 
-if st.session_state.page == "seller":
-    st.sidebar.title("Seller's Property Details")
+        def encode_property_type(property_type):
+            return [1 if property == property_type else 0 for property in property_types]
 
-    # Sidebar for Seller Input Form
-    property_types = ["Entire home", "Private room", "Shared room", "Hotel room"]
-    price = st.sidebar.number_input("Price", min_value=10, max_value=50000, value=150)
+        data['property_type_encoded'] = data['property_type'].apply(encode_property_type)
+        return data
+    except Exception as e:
+        print(f"Error fetching data from Backblaze: {e}")
 
-    # Dropdown for Property Type
-    property_type = st.sidebar.selectbox("Property Type", property_types)
+        # Fallback: Load dataset from local backup if available
+        local_file_path = 'local_backup/Airbnb_Dataset_Long.csv'
+        if os.path.exists(local_file_path):
+            print(f"Loading data from local backup: {local_file_path}")
+            data = pd.read_csv(local_file_path)
+            data = data[columns_to_use].dropna()
 
-    # Number inputs for Bedrooms, Bathrooms, Beds, etc.
-    bedrooms = st.sidebar.number_input("Number of Bedrooms", min_value=1, max_value=10, value=1)
-    bathrooms = st.sidebar.number_input("Number of Bathrooms", min_value=1, max_value=10, value=1)
-    accommodates = st.sidebar.number_input("Accommodates", min_value=1, max_value=20, value=1)
-    beds = st.sidebar.number_input("Number of Beds", min_value=1, max_value=20, value=1)
+            property_types = data['property_type'].unique().tolist()
 
-    # Text inputs for Neighborhood Overview, Host Neighborhood, and Amenities
-    neighborhood_overview = st.sidebar.text_area("Neighborhood Overview", "Enter details about the neighborhood...")
-    host_neighborhood = st.sidebar.text_area("Host Neighborhood", "Enter details about the host's neighborhood...")
-    amenities = st.sidebar.text_area("Amenities", "Enter details about the amenities available...")
+            data['property_type_encoded'] = data['property_type'].apply(encode_property_type)
+            return data
+        else:
+            print("No valid dataset found. Please ensure that the dataset is available.")
+            return None
 
-    # Calculate sentiment scores using the loaded analyzer
-    def get_sentiment_score(text):
-        return analyzer.polarity_scores(text)['compound']
+# Train the model
+def train_model(data):
+    # Prepare feature matrix X and target vector y
+    other_features = data[['accommodates', 'bathrooms', 'bedrooms', 'beds', 'price']].values
+    encoded_property_types = np.array(data['property_type_encoded'].tolist())
 
-    neighborhood_sentiment = get_sentiment_score(neighborhood_overview)
-    host_neighborhood_sentiment = get_sentiment_score(host_neighborhood)
-    amenities_sentiment = get_sentiment_score(amenities)
+    X_train = np.hstack((other_features, encoded_property_types))
+    y_train = data['review_score_rating'].values
 
-    # Flag to check if the submit button has been clicked
-    submitted = st.sidebar.button("Submit Property")
+    # Standardize the features
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
 
-    # Seller Page Content
-    if not submitted:
-        st.title("Seller's Property Submission")
-        st.write("Fill in the property details on the sidebar to submit your listing.")
+    # Train the Linear Regression model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # Save the trained model and scaler to a pickle file
+    with open('model.pickle', 'wb') as model_file:
+        pickle.dump({'model': model, 'scaler': scaler}, model_file)
+
+    return model, scaler
+
+# Load or train the model
+def load_or_train_model(remote_file_name):
+    if os.path.exists('model.pickle'):
+        # Load existing model and scaler from pickle
+        with open('model.pickle', 'rb') as model_file:
+            model_data = pickle.load(model_file)
+            return model_data['model'], model_data['scaler']
     else:
-        st.markdown("### Property Details Submitted")
-        st.write(f"**Property Type:** {property_type}")
-        st.write(f"**Price:** ${price}")
-        st.write(f"**Bedrooms:** {bedrooms}")
-        st.write(f"**Bathrooms:** {bathrooms}")
-        st.write(f"**Accommodates:** {accommodates}")
-        st.write(f"**Beds:** {beds}")
-        st.write(f"**Neighborhood Overview Sentiment:** {neighborhood_sentiment}")
-        st.write(f"**Host Neighborhood Sentiment:** {host_neighborhood_sentiment}")
-        st.write(f"**Amenities Sentiment:** {amenities_sentiment}")
+        # Train a new model and save it
+        data = load_and_preprocess_data(remote_file_name)
+        if data is not None:
+            return train_model(data)
+        else:
+            raise ValueError("Failed to load data for training")
 
-        # Generate and display the predicted review score
-        input_features = np.array([[
-            accommodates, bathrooms, bedrooms, beds, price,
-            neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
-        ] + encode_property_type(property_type)])
-        input_features = scaler.transform(input_features)  # Standardize the input features
-        predicted_score = model.predict(input_features)[0]
-        predicted_score = round(min(max(predicted_score, 0), 5), 2)
-        st.markdown(f"## 🔥 **Predicted Review Score Rating: {predicted_score:.2f}** 🔥")
+# Example usage
+if __name__ == "__main__":
+    REMOTE_DATA = 'Airbnb Dataset_Long.csv'
+    try:
+        model, scaler = load_or_train_model(REMOTE_DATA)
+    except ValueError as e:
+        print(e)
 
-# Back button to go back to main page
-if st.button("Back"):
-    st.session_state.page = "main"
 
 
 
