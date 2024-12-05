@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from utils.modeling_sentiment import encode_property_type, load_model
 from utils.b2 import B2
 
+# Create an instance of B2
 b2 = B2()
 
 @st.cache_data
