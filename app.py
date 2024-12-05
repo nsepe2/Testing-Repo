@@ -3,15 +3,17 @@ import numpy as np
 import pickle
 from utils.modeling_sentiment import (
     get_sentiment_score,
-    encode_property_type,
-    initialize_analyzer
+    encode_property_type
 )
 
-# Load trained model and scaler
+# Load trained model, scaler, and analyzer from pickle files
 with open('model.pickle', 'rb') as model_file:
     model_data = pickle.load(model_file)
     model = model_data['model']
     scaler = model_data['scaler']
+
+with open('analyzer.pickle', 'rb') as analyzer_file:
+    analyzer = pickle.load(analyzer_file)
 
 # Streamlit Interface
 if 'page' not in st.session_state:
@@ -47,7 +49,10 @@ if st.session_state.page == "seller":
     host_neighborhood = st.sidebar.text_area("Host Neighborhood", "Enter details about the host's neighborhood...")
     amenities = st.sidebar.text_area("Amenities", "Enter details about the amenities available...")
 
-    # Calculate sentiment scores using VADER
+    # Calculate sentiment scores using the loaded analyzer
+    def get_sentiment_score(text):
+        return analyzer.polarity_scores(text)['compound']
+
     neighborhood_sentiment = get_sentiment_score(neighborhood_overview)
     host_neighborhood_sentiment = get_sentiment_score(host_neighborhood)
     amenities_sentiment = get_sentiment_score(amenities)
@@ -57,11 +62,9 @@ if st.session_state.page == "seller":
 
     # Seller Page Content
     if not submitted:
-        # Display introductory text only if not submitted
         st.title("Seller's Property Submission")
         st.write("Fill in the property details on the sidebar to submit your listing.")
     else:
-        # Display submitted property details
         st.markdown("### Property Details Submitted")
         st.write(f"**Property Type:** {property_type}")
         st.write(f"**Price:** ${price}")
@@ -73,7 +76,7 @@ if st.session_state.page == "seller":
         st.write(f"**Host Neighborhood Sentiment:** {host_neighborhood_sentiment}")
         st.write(f"**Amenities Sentiment:** {amenities_sentiment}")
 
-        # Generate and display the predicted review score using the linear regression model
+        # Generate and display the predicted review score
         input_features = np.array([[
             accommodates, bathrooms, bedrooms, beds, price,
             neighborhood_sentiment, host_neighborhood_sentiment, amenities_sentiment
@@ -86,6 +89,7 @@ if st.session_state.page == "seller":
 # Back button to go back to main page
 if st.button("Back"):
     st.session_state.page = "main"
+
 
 
 
