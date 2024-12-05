@@ -10,8 +10,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
 from utils.b2 import B2
+from io import BytesIO
 
-# Function to load data from Backblaze
 def load_and_preprocess_data():
     load_dotenv()  # Load environment variables
     try:
@@ -34,8 +34,10 @@ def load_and_preprocess_data():
         if obj is None:
             raise ValueError("Failed to get the object from Backblaze bucket")
         
+        print(f"Retrieved object type: {type(obj)}")
+        
         # Read data from Excel file
-        data = pd.read_excel(obj)
+        data = pd.read_excel(BytesIO(obj))  # Use BytesIO if obj is a byte stream
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
@@ -43,6 +45,7 @@ def load_and_preprocess_data():
         return data
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
+
 
 # Function to one-hot encode property type
 def encode_property_type(X):
