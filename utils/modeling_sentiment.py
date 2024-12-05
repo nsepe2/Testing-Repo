@@ -33,11 +33,14 @@ def load_and_preprocess_data():
         
         # Retrieve the file from Backblaze
         obj = b2.get_object('Final_PROJ.xlsx')
-        if obj is None:
-            raise ValueError("Failed to get the object from Backblaze bucket")
+        if obj is None or not hasattr(obj, 'read'):
+            raise ValueError("Failed to get the object from Backblaze bucket. The object retrieved is not valid.")
         
         # Convert StreamingBody to BytesIO
-        file_content = obj.read()  # Read the content of StreamingBody as bytes
+        file_content = obj.read()  # Ensure this is being read as bytes
+        if not isinstance(file_content, bytes):
+            raise ValueError("Error fetching data from Backblaze: Retrieved object is not in bytes format.")
+
         data = pd.read_excel(BytesIO(file_content))  # Use BytesIO to read into pandas
         
         # Data preprocessing
@@ -51,6 +54,18 @@ def load_and_preprocess_data():
                 return 0  # Default score if there's no text
             sentiment = analyzer.polarity_scores(text)
             return sentiment['compound']
+
+        # Add sentiment scores to the DataFrame
+        data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(get_sentiment_score)
+        data['host_neighborhood_sentiment'] = data['host_neighborhood'].apply(get_sentiment_score)
+        data['amenities_sentiment'] = data['amenities'].apply(get_sentiment_score)
+
+        print("Data loaded, preprocessed, and sentiment analysis performed successfully.")
+        return data
+    except Exception as e:
+        raise ValueError(f"Error fetching data from Backblaze: {e}")
+
+
 
         # Add sentiment scores to the DataFrame
         data['neighborhood_sentiment'] = data['neighborhood_overview'].apply(get_sentiment_score)
