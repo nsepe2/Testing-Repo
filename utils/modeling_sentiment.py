@@ -71,12 +71,14 @@ def load_or_train_model():
         # Load existing model and scaler from pickle
         with open('model.pickle', 'rb') as model_file:
             model_data = pickle.load(model_file)
+            print("Loaded model from pickle.")
             return model_data['model'], model_data['scaler']
     else:
         # Train a new model and save it
         remote_file_name = 'Airbnb Dataset_Long.csv'
         data = load_and_preprocess_data(remote_file_name)
         if data is not None:
+            print("Dataset loaded successfully, proceeding to train the model.")
             return train_model(data)
         else:
             raise ValueError("Failed to load data for training")
