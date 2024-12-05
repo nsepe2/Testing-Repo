@@ -9,6 +9,19 @@ from sklearn.preprocessing import StandardScaler
 from utils.modeling_sentiment import encode_property_type, load_model
 from utils.b2 import B2
 
+# Add the utils directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
+
+# Load environment variables
+load_dotenv()
+
+# Set Backblaze connection
+b2 = B2(
+    endpoint=os.getenv('B2_ENDPOINT'),
+    key_id=os.getenv('B2_KEYID'),
+    secret_key=os.getenv('B2_APPKEY')
+)
+
 @st.cache_data
 def fetch_data():
     try:
