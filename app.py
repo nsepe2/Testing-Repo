@@ -7,6 +7,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from utils.modeling_sentiment import encode_property_type, load_model
+import sys
 from utils.b2 import B2
 
 # Add the utils directory to the Python path
