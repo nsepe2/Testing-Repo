@@ -73,7 +73,7 @@ def train_and_save_model():
             raise ValueError("Target column 'review_score_rating' not found in dataset")
 
         X = data[feature_columns]
-        y = data['review_score_rating']
+        y = data['review_scores_rating']
 
         # One-hot encode 'property_type'
         X = encode_property_type(X)
