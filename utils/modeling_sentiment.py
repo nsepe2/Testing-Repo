@@ -31,14 +31,16 @@ def fetch_data():
             key_id=os.getenv('B2_KEYID'),
             secret_key=os.getenv('B2_APPKEY')
         )
-        b2.set_bucket(os.getenv('B2_BUCKETNAME'))
-        obj = b2.get_object('Final_PROJ.xlsx')
-        data = pd.read_excel(obj)
-        print("Data loaded successfully. Preview:")
-        print(data.head())
-        return data
+        bucket_name = os.getenv('B2_BUCKETNAME')
+        
+        if not bucket_name:
+            raise ValueError("Bucket name not found in environment variables")
+
+        b2.set_bucket(bucket_name)
+        st.write("Connection to Backblaze successful!")
+        return None
     except Exception as e:
-        print(f"Error fetching data from Backblaze: {e}")
+        st.error(f"Error connecting to Backblaze: {e}")
         return None
 
 def load_or_train_model():
