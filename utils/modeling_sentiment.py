@@ -48,9 +48,12 @@ def load_and_preprocess_data():
         
         if not isinstance(file_content, bytes):
             raise ValueError("Error fetching data from Backblaze: Retrieved object is not in bytes format.")
-
-        # Read into pandas
-        data = pd.read_excel(BytesIO(file_content))
+        
+        # Try reading the Excel file content
+        try:
+            data = pd.read_excel(BytesIO(file_content), engine='openpyxl')  # Adding engine parameter
+        except Exception as e:
+            raise ValueError(f"Failed to read Excel file from Backblaze: {e}")
         
         # Data preprocessing
         data.dropna(inplace=True)  # Remove rows with missing values
@@ -74,6 +77,7 @@ def load_and_preprocess_data():
 
     except Exception as e:
         raise ValueError(f"Error fetching data from Backblaze: {e}")
+
 
 
 # Function to encode property type
