@@ -10,6 +10,7 @@ from utils.modeling_sentiment import encode_property_type, load_model
 import sys
 from utils.b2 import B2
 from dotenv import load_dotenv
+from io import BytesIO
 
 # Add the utils directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
@@ -27,12 +28,16 @@ b2 = B2(
 @st.cache_data
 def fetch_data():
     try:
-        b2.set_bucket(os.getenv('B2_BUCKETNAME'))  # Set the bucket
-        obj = b2.get_object('Final_PROJ.xlsx')  # Use the EXACT file name
-        return pd.read_excel(obj)
+        b2.set_bucket(os.getenv('B2_BUCKETNAME'))  # Use environment variable for bucket name
+        obj = b2.get_object('Final_PROJ.xlsx')  # Retrieve the file
+
+        # Convert the StreamingBody object to a BytesIO object
+        file_content = obj.read()  # Read the content of the StreamingBody
+        return pd.read_excel(BytesIO(file_content))  # Use BytesIO to create a file-like object
     except Exception as e:
         st.error(f"Error fetching data from Backblaze: {e}")
         return None
+
 
 def get_sentiment_score(text, analyzer):
     """Utility function to get sentiment score using SentimentIntensityAnalyzer."""
