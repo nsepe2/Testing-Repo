@@ -15,8 +15,8 @@ from io import BytesIO
 # Add the utils directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
 
-# Load Backblaze credentials from Streamlit Secrets
-endpoint = os.getenv("B2_ENDPOINT")  # Streamlit Secrets inject environment variables
+# Load Backblaze from Streamlit Secrets
+endpoint = os.getenv("B2_ENDPOINT")  
 key_id = os.getenv("B2_KEYID")
 app_key = os.getenv("B2_APPKEY")
 bucket_name = os.getenv("B2_BUCKETNAME")
@@ -31,8 +31,8 @@ b2 = B2(
 @st.cache_data
 def fetch_data():
     try:
-        b2.set_bucket(os.getenv('B2_BUCKETNAME'))  # Use environment variable for bucket name
-        obj = b2.get_object('Final_PROJ.xlsx')  # Retrieve the file
+        b2.set_bucket(os.getenv('B2_BUCKETNAME'))  
+        obj = b2.get_object('Final_PROJ.xlsx')  # Use Exact Name of File
 
         # Convert the StreamingBody object to a BytesIO object
         file_content = obj.read()  # Read the content of the StreamingBody
@@ -47,7 +47,7 @@ def get_sentiment_score(text, analyzer):
     if text:
         sentiment = analyzer.polarity_scores(text)
         return sentiment['compound']
-    return 0  # Default sentiment score if text is missing
+    return None  # Default sentiment score if text is missing
 
 # Load trained model and scaler from pickle file
 try:
