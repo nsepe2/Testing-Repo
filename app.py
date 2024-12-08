@@ -80,20 +80,28 @@ if data is not None:
 if st.session_state.page == "buyer":
     st.header("Explore Listings on Map")
 
+    # Check for required columns
+    required_columns = ["latitude", "longitude", "name", "price", "host_neighbourhood"]
+    missing_columns = [col for col in required_columns if col not in data.columns]
+
+    if missing_columns:
+        st.error(f"The following required columns are missing: {missing_columns}")
+        st.stop()
+
     # Filter rows with valid latitude, longitude, name, and price
     data_clean = data.dropna(subset=["latitude", "longitude", "name", "price"])
+    st.write("Cleaned data size:", data_clean.shape)
 
     # Create a list of properties to be used in the map
     properties = []
     for index, row in data_clean.iterrows():
-        if row["name"] and row["price"]:  # Ensure both name and price are present
-            properties.append({
-                "name": row["name"],
-                "price": row["price"],
-                "neighborhood": row["Host Neighbourhood"],
-                "latitude": row["latitude"],
-                "longitude": row["longitude"]
-            })
+        properties.append({
+            "name": row["name"],
+            "price": row["price"],
+            "neighborhood": row["host_neighbourhood"],
+            "latitude": row["latitude"],
+            "longitude": row["longitude"]
+        })
 
     # Create Pydeck Map with property listings and markers
     deck = pdk.Deck(
@@ -121,6 +129,7 @@ if st.session_state.page == "buyer":
     )
 
     st.pydeck_chart(deck)
+
 
 # Seller Page
 elif st.session_state.page == "seller":
