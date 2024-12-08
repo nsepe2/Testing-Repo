@@ -81,7 +81,7 @@ if st.session_state.page == "buyer":
     st.header("Explore Listings on Map")
 
     # Filter rows with valid latitude, longitude, name, and price
-    data_clean = data.dropna(subset=["latitude", "longitude", "NAME", "Price"])
+    data_clean = data.dropna(subset=["latitude", "longitude", "name", "price"])
 
     # Create a list of properties to be used in the map
     properties = []
