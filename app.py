@@ -15,14 +15,17 @@ from io import BytesIO
 # Add the utils directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
 
-# Load environment variables
-load_dotenv()
+# Load Backblaze credentials from Streamlit Secrets
+endpoint = os.getenv("B2_ENDPOINT")  # Streamlit Secrets inject environment variables
+key_id = os.getenv("B2_KEYID")
+app_key = os.getenv("B2_APPKEY")
+bucket_name = os.getenv("B2_BUCKETNAME")
 
-# Set Backblaze connection
+# Set up Backblaze connection
 b2 = B2(
-    endpoint=os.getenv('B2_ENDPOINT'),
-    key_id=os.getenv('B2_KEYID'),
-    secret_key=os.getenv('B2_APPKEY')
+    endpoint=endpoint,
+    key_id=key_id,
+    secret_key=app_key
 )
 
 @st.cache_data
