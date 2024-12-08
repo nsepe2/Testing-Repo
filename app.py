@@ -86,10 +86,10 @@ if st.session_state.page == "buyer":
     # Create a list of properties to be used in the map
     properties = []
     for index, row in data_clean.iterrows():
-        if row["NAME"] and row["Price"]:  # Ensure both name and price are present
+        if row["name"] and row["price"]:  # Ensure both name and price are present
             properties.append({
-                "name": row["NAME"],
-                "price": row["Price"],
+                "name": row["name"],
+                "price": row["price"],
                 "neighborhood": row["Host Neighbourhood"],
                 "latitude": row["latitude"],
                 "longitude": row["longitude"]
