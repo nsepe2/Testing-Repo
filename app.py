@@ -27,7 +27,7 @@ b2 = B2(
 @st.cache_data
 def fetch_data():
     try:
-        b2.set_bucket('B2_BUCKETNAME')  # Set the bucket
+        b2.set_bucket(os.getenv('B2_BUCKETNAME'))  # Set the bucket
         obj = b2.get_object('Final_PROJ.xlsx')  # Use the EXACT file name
         return pd.read_excel(obj)
     except Exception as e:
