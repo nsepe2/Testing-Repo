@@ -15,7 +15,7 @@ from io import BytesIO
 # Set the page config for a wide layout
 st.set_page_config(page_title="Airbnb Data Viewer", layout="wide", initial_sidebar_state="expanded")
 
-# Add the utils directory to the Python path
+# Add the utils to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'utils')))
 
 
@@ -32,14 +32,14 @@ b2 = B2(
     secret_key=app_key
 )
 
-
 @st.cache_data 
 def fetch_data():
     try:
         b2.set_bucket(os.getenv('B2_BUCKETNAME'))  
-        obj = b2.get_object('Final_PROJ.xlsx')  # Name of File
+        obj = b2.get_object('Final_PROJ.xlsx')  #Exact Name of File
 
         # Convert the StreamingBody object to a BytesIO object
+        # Done to combat Error
         file_content = obj.read()  # Read the content of the StreamingBody
         return pd.read_excel(BytesIO(file_content))  # Use BytesIO to create a file-like object
     except Exception as e:
@@ -54,8 +54,7 @@ def get_sentiment_score(text, analyzer):
         return sentiment['compound']
     return 0 # Default sentiment score if text is missing
 
-
-# Load trained model and scaler from pickle file
+# Load trained model from pickle file
 try:
     model, scaler, expected_features = load_model()
 except FileNotFoundError:
@@ -63,8 +62,6 @@ except FileNotFoundError:
     st.stop()
 
 # Streamlit UI
-#st.title("Airbnb Data Viewer")
-
 # Initialize session state variables
 if 'page' not in st.session_state:
     st.session_state.page = "Main"
