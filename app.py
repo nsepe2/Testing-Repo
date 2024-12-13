@@ -309,13 +309,13 @@ def main():
          # Add button to submit input data
         if st.button("Predict Review Score"):
             try:
-        # Standardize features
-            input_data_scaled = scaler.transform(input_data_encoded)
+                # Standardize features
+                input_data_scaled = scaler.transform(input_data_encoded)
 
-        # Make prediction
-            predicted_score = model.predict(input_data_scaled)[0]
+                # Make prediction
+                predicted_score = model.predict(input_data_scaled)[0]
 
-        # Check if predicted score is greater than 5
+                # Check if predicted score is greater than 5
                 if predicted_score > 5:
                     st.error("Uh-Oh, it seems that the combination of your inputs is very unique and our model is having trouble taking into account this unique combo. Try something else!")
                 else:
