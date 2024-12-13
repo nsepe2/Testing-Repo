@@ -308,23 +308,23 @@ def main():
 
          # Add button to submit input data
         if st.button("Predict Review Score"):
-            predicted_score = None  # Initialize the variable to avoid scope issues
-        try:
+            try:
+        # Standardize features
             input_data_scaled = scaler.transform(input_data_encoded)
-            # Make prediction
+
+        # Make prediction
             predicted_score = model.predict(input_data_scaled)[0]
 
         # Check if predicted score is greater than 5
-        if predicted_score > 5:
-            st.error("Uh-Oh, it seems that the combination of your inputs is very unique and our model is having trouble taking into account this unique combo. Try something else!")
-        else:
-            st.subheader("Predicted Review Score")
-            st.markdown(f"<h2 style='font-size: 36px; color: #FF5733; font-weight: bold;'>The predicted review score for your listing is: {predicted_score:.2f}</h2>", 
-                        unsafe_allow_html=True)
-    except ValueError as e:
-        st.error(f"Error during feature scaling or prediction: {e}")
-
-            
+                if predicted_score > 5:
+                    st.error("Uh-Oh, it seems that the combination of your inputs is very unique and our model is having trouble taking into account this unique combo. Try something else!")
+                else:
+                    st.subheader("Predicted Review Score")
+                    st.markdown(f"<h2 style='font-size: 36px; color: #FF5733; font-weight: bold;'>The predicted review score for your listing is: {predicted_score:.2f}</h2>", 
+                                unsafe_allow_html=True)
+             except ValueError as e:
+                st.error(f"Error during feature scaling or prediction: {e}")
+ 
              # Footer
     st.markdown("""
         <div class="footer">
