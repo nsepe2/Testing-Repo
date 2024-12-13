@@ -11,6 +11,7 @@ import sys
 from utils.b2 import B2
 from dotenv import load_dotenv
 from io import BytesIO
+from utils.basic_clean import *
 
 # Set the page config for a wide layout
 st.set_page_config(page_title="Airbnb Data Viewer", layout="wide", initial_sidebar_state="expanded")
@@ -36,7 +37,7 @@ b2 = B2(
 def fetch_data():
     try:
         b2.set_bucket(os.getenv('B2_BUCKETNAME'))  
-        obj = b2.get_object('Final_PROJ.xlsx')  #Exact Name of File
+        obj = b2.get_object('Cleaned_Austin_AirBnB.xlsx')  #Exact Name of File
 
         # Convert the StreamingBody object to a BytesIO object
         # Done to combat Error
@@ -188,6 +189,16 @@ def main():
         rating_input = st.number_input("Minimum Review Rating", min_value=0.0, max_value=5.0, value=3.0, step=0.1)
         price_input = st.number_input("Maximum Price ($)", min_value=0, value=500)
 
+        try:
+
+            if price_input == 0:
+                raise ValueError("Price cannot be 0. Please enter a valid price.")
+            if price_input > 12000:
+                st.error("Maximum Property Price is 12000.")
+                price_input = 12000  # Optionally, you can reset the price input to 12000, or leave it to the user to correct.
+                st.empty()
+        except ValueError as e:
+            st.error(e)
         unique_property_types = (
             ["Any"] + sorted(data['property_type'].dropna().unique().tolist()) 
             if 'property_type' in data.columns else ["Any"]
@@ -203,6 +214,7 @@ def main():
         search_button = st.button("Search")
 
         if search_button:
+            st.empty()
             filtered_data = data.copy()
 
             # Filter by rating
@@ -261,15 +273,41 @@ def main():
         st.header("Seller Page")
 
         # User inputs for prediction
-        accommodates = st.number_input("Accommodates", min_value=1, step=1)
-        bathrooms = st.number_input("Bathrooms", min_value=0.5, step=0.5)
-        bedrooms = st.number_input("Bedrooms", min_value=1, step=1)
-        beds = st.number_input("Beds", min_value=1, step=1)
-        price = st.number_input("Price (USD)", min_value=10, step=1)
-        neighborhood_overview = st.text_area("Neighborhood Overview")
-        host_neighborhood = st.text_area("Host Neighborhood Description")
-        amenities = st.text_area("Amenities")
-        property_type = st.selectbox("Property Type", ["Apartment", "House", "Condo", "unknown"])
+        st.markdown("<h2 style='font-size: 18px;'>Accommodates</h2>", unsafe_allow_html=True)
+        accommodates = st.number_input("", min_value=1, step=1,max_value = 500, label_visibility="collapsed")
+        # accommodates = st.number_input("Accommodates", min_value=1, step=1, max_value = 500)
+
+        st.markdown("<h2 style='font-size: 18px;'>Bathrooms</h2>", unsafe_allow_html=True)
+        bathrooms = st.number_input("", min_value=0.5, step=0.5, max_value=100.0, label_visibility="collapsed")
+        # bathrooms = st.number_input("Bathrooms", min_value=0.5, step=0.5, max_value=100.0)
+
+        st.markdown("<h2 style='font-size: 18px;'>Bedrooms</h2>", unsafe_allow_html=True)
+        bedrooms = st.number_input("", min_value=1, step=1, max_value=100, label_visibility="collapsed")
+        # bedrooms = st.number_input("Bedrooms", min_value=1, step=1, max_value= 100)
+
+        st.markdown("<h2 style='font-size: 18px;'>Beds</h2>", unsafe_allow_html=True)
+        beds = st.number_input("", min_value=1, step=1, max_value = 500, label_visibility="collapsed",key="beds_input")
+        # beds = st.number_input("Beds", min_value=1, step=1, max_value = 500)
+
+        st.markdown("<h2 style='font-size: 18px;'>Price</h2>", unsafe_allow_html=True)
+        price = st.number_input("", min_value=10, step=1, label_visibility="collapsed")
+        # price = st.number_input("Price (USD)", min_value=10, step=1)
+
+        st.markdown("<h2 style='font-size: 18px;'>Host Neighborhood</h2>", unsafe_allow_html=True)
+        neighborhood_overview = st.text_area("", placeholder="Provide neighborhood name...")
+        # neighborhood_overview = st.text_area("Neighborhood Overview")
+
+        st.markdown("<h2 style='font-size: 18px;'>Neighborhood Overview</h2>", unsafe_allow_html=True)
+        host_neighborhood = st.text_area("", placeholder="Provide neighborhood description...")
+        # host_neighborhood = st.text_area("Host Neighborhood")
+
+        st.markdown("<h2 style='font-size: 18px;'>Amenities</h2>", unsafe_allow_html=True)
+        amenities = st.text_area("", placeholder="Provide available amenities...")
+        # amenities = st.text_area("Amenities")
+
+        st.markdown("<h2 style='font-size: 18px;'>Property Type</h2>", unsafe_allow_html=True)
+        property_type = st.selectbox("", ["Apartment", "House", "Condo", "Unknown"])
+        # property_type = st.selectbox("Property Type", ["Apartment", "House", "Condo", "unknown"])
 
         # Sentiment Analysis
         analyzer = SentimentIntensityAnalyzer()
@@ -305,34 +343,33 @@ def main():
 
         # Reorder columns to match the expected features
         input_data_encoded = input_data_encoded[expected_features]
-        
-     # Add button to submit input data
-if st.button("Predict Review Score"):
-    try:
-        # Standardize features
-        input_data_scaled = scaler.transform(input_data_encoded)
 
-        # Make prediction
-        predicted_score = model.predict(input_data_scaled)[0]
+         # Add button to submit input data
+        if st.button("Predict Review Score"):
+            # Standardize features
+            try:
+                input_data_scaled = scaler.transform(input_data_encoded)
+            except ValueError as e:
+                st.error(f"Error during feature scaling: {e}")
+                st.stop()
 
-        # Check if predicted score is greater than 5
+            # Make prediction
+            predicted_score = model.predict(input_data_scaled)[0]
+
+            # Check if predicted score is greater than 5
         if predicted_score > 5:
             st.error("Uh-Oh, it seems that the combination of your inputs is very unique and our model is having trouble taking into account this unique combo. Try something else!")
         else:
             st.subheader("Predicted Review Score")
             st.markdown(f"<h2 style='font-size: 36px; color: #FF5733; font-weight: bold;'>The predicted review score for your listing is: {predicted_score:.2f}</h2>", 
-                        unsafe_allow_html=True)
-    except ValueError as e:
-        st.error(f"Error during feature scaling or prediction: {e}")
-
- 
+                    unsafe_allow_html=True)
+            
              # Footer
     st.markdown("""
         <div class="footer">
             <p>Made by Nathan, Parth, Diya & Arsh | 2024</p>
         </div>
     """, unsafe_allow_html=True)
-
 
 if __name__ == "__main__":
     main()
